@@ -1,0 +1,5 @@
+﻿OpenCV Zoo YuNet face detector model
+Model: face_detection_yunet_2023mar.onnx
+Source: https://github.com/opencv/opencv_zoo/tree/main/models/face_detection_yunet
+The OpenCV Zoo README states files in this model directory are distributed under the MIT License.
+This face detector is used only to locate faces for the oval blur privacy filter.
