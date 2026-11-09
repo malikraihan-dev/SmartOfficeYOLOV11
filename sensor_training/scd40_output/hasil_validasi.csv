@@ -1,0 +1,7 @@
+target,model,validation_mae
+temperature_c,persistence,0.10547405806053119
+temperature_c,ridge,0.08476098753402433
+temperature_c,hist_gradient_boosting,0.07150164101294289
+co2_ppm,persistence,14.504678814082768
+co2_ppm,ridge,12.272477692914462
+co2_ppm,hist_gradient_boosting,11.497454489233421
