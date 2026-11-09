@@ -1,0 +1,351 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4560" height="2420" viewBox="0 0 4560 2420"><title>SmartOffice — Auth and motion</title>
+<rect x="0" y="0" width="4560" height="2420" rx="0" fill="#dfe7dc" stroke="none"/>
+<text x="40" y="45" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#203d30">SMARTOFFICE / AKSES, SIDEBAR &amp; NOTIFIKASI</text>
+<text x="40" y="76" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Storyboard interaksi · Google SSO merupakan rancangan UI · Tidak ada akun atau koneksi OAuth yang dibuat</text>
+<g transform="translate(40 105)">
+<rect x="0" y="0" width="1440" height="1080" rx="24" fill="#f4f6ef" stroke="none"/>
+<rect x="0" y="0" width="580" height="1080" rx="24" fill="#203d30" stroke="none"/>
+<rect x="40" y="38" width="42" height="42" rx="12" fill="#7ec486" stroke="none"/>
+<text x="53" y="68" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="700" fill="#203d30">S</text>
+<text x="98" y="67" font-family="Segoe UI, Arial, sans-serif" font-size="27" font-weight="700" fill="#ffffff">SmartOffice</text>
+<rect x="42" y="214" width="274" height="28" rx="14" fill="#385943" stroke="none"/>
+<text x="54" y="233" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#e0efdf">WORKSPACE INTELLIGENCE</text>
+<text x="42" y="318" font-family="Segoe UI, Arial, sans-serif" font-size="46" font-weight="600" fill="#ffffff">Ruang kerja.</text>
+<text x="42" y="378" font-family="Segoe UI, Arial, sans-serif" font-size="46" font-weight="600" fill="#fff2bc">Lebih terhubung.</text>
+<text x="42" y="441" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="400" fill="#c7dacb">Pantau aktivitas, kualitas udara, dan dataset</text>
+<text x="42" y="473" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="400" fill="#c7dacb">melalui satu dashboard yang teratur.</text>
+<rect x="42" y="535" width="496" height="264" rx="20" fill="#304e3d" stroke="none"/>
+<text x="66" y="577" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#c7dacb">SATU TAMPILAN UNTUK RUANG ANDA</text>
+<rect x="66" y="606" width="204" height="100" rx="14" fill="#42624c" stroke="none"/>
+<text x="84" y="637" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#c7dacb">Kamera</text>
+<text x="84" y="674" font-family="Segoe UI, Arial, sans-serif" font-size="23" font-weight="600" fill="#ffffff">Monitoring</text>
+<rect x="310" y="606" width="204" height="100" rx="14" fill="#42624c" stroke="none"/>
+<text x="328" y="637" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#c7dacb">Sensor</text>
+<text x="328" y="674" font-family="Segoe UI, Arial, sans-serif" font-size="23" font-weight="600" fill="#ffffff">SCD40</text>
+<path d="M66 737 L512 737" stroke="#53715b" fill="none"/>
+<text x="66" y="771" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#c7dacb">Data asli dan simulasi selalu dibedakan.</text>
+<text x="42" y="1015" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#c7dacb">SmartOffice · Akses ruang kerja Anda</text>
+<text x="742" y="110" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#64796c">SELAMAT DATANG KEMBALI</text>
+<text x="742" y="161" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="700" fill="#203d30">Masuk ke ruang kerja</text>
+<text x="742" y="199" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Gunakan akun yang terhubung dengan instalasi Anda.</text>
+<rect x="742" y="237" width="536" height="52" rx="12" fill="#ffffff" stroke="#d9e2d5"/>
+<text x="764" y="271" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#4285f4">G</text>
+<text x="834" y="270" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">Lanjutkan dengan Google</text>
+<text x="742" y="316" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">Akun Google yang diizinkan oleh pengelola ruang kerja.</text>
+<path d="M742 355 L941 355" stroke="#e4eade" fill="none"/>
+<text x="964" y="360" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#64796c">atau</text>
+<path d="M1012 355 L1278 355" stroke="#e4eade" fill="none"/>
+<text x="742" y="400" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#203d30">Email</text>
+<rect x="742" y="416" width="536" height="54" rx="11" fill="#ffffff" stroke="#d9e2d5"/>
+<text x="758" y="450" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">nama@perusahaan.com</text>
+<text x="742" y="505" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#203d30">Kata sandi</text>
+<rect x="742" y="521" width="536" height="54" rx="11" fill="#ffffff" stroke="#d9e2d5"/>
+<text x="758" y="555" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Masukkan kata sandi</text>
+<text x="1187" y="555" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#203d30">Lihat</text>
+<text x="1135" y="623" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#203d30">Lupa kata sandi?</text>
+<rect x="742" y="666" width="536" height="42" rx="11" fill="#203d30" stroke="none"/>
+<text x="758" y="693" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#ffffff">Masuk</text>
+<text x="853" y="754" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#203d30">Belum punya akun?  Daftar</text>
+<rect x="742" y="817" width="536" height="83" rx="12" fill="#ffffff" stroke="none"/>
+<text x="760" y="846" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#203d30">Akses sesuai izin akun</text>
+<text x="760" y="874" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">Data kamera dan sensor hanya untuk pengguna berwenang.</text>
+<text x="742" y="952" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#64796c">SSO kembali ke dashboard setelah izin akun diperiksa.</text>
+</g>
+<g transform="translate(1560 105)">
+<rect x="0" y="0" width="1440" height="1080" rx="24" fill="#f4f6ef" stroke="none"/>
+<rect x="0" y="0" width="580" height="1080" rx="24" fill="#203d30" stroke="none"/>
+<rect x="40" y="38" width="42" height="42" rx="12" fill="#7ec486" stroke="none"/>
+<text x="53" y="68" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="700" fill="#203d30">S</text>
+<text x="98" y="67" font-family="Segoe UI, Arial, sans-serif" font-size="27" font-weight="700" fill="#ffffff">SmartOffice</text>
+<rect x="42" y="214" width="274" height="28" rx="14" fill="#385943" stroke="none"/>
+<text x="54" y="233" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#e0efdf">WORKSPACE INTELLIGENCE</text>
+<text x="42" y="318" font-family="Segoe UI, Arial, sans-serif" font-size="46" font-weight="600" fill="#ffffff">Ruang kerja.</text>
+<text x="42" y="378" font-family="Segoe UI, Arial, sans-serif" font-size="46" font-weight="600" fill="#fff2bc">Lebih terhubung.</text>
+<text x="42" y="441" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="400" fill="#c7dacb">Pantau aktivitas, kualitas udara, dan dataset</text>
+<text x="42" y="473" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="400" fill="#c7dacb">melalui satu dashboard yang teratur.</text>
+<rect x="42" y="535" width="496" height="264" rx="20" fill="#304e3d" stroke="none"/>
+<text x="66" y="577" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#c7dacb">SATU TAMPILAN UNTUK RUANG ANDA</text>
+<rect x="66" y="606" width="204" height="100" rx="14" fill="#42624c" stroke="none"/>
+<text x="84" y="637" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#c7dacb">Kamera</text>
+<text x="84" y="674" font-family="Segoe UI, Arial, sans-serif" font-size="23" font-weight="600" fill="#ffffff">Monitoring</text>
+<rect x="310" y="606" width="204" height="100" rx="14" fill="#42624c" stroke="none"/>
+<text x="328" y="637" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#c7dacb">Sensor</text>
+<text x="328" y="674" font-family="Segoe UI, Arial, sans-serif" font-size="23" font-weight="600" fill="#ffffff">SCD40</text>
+<path d="M66 737 L512 737" stroke="#53715b" fill="none"/>
+<text x="66" y="771" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#c7dacb">Data asli dan simulasi selalu dibedakan.</text>
+<text x="42" y="1015" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#c7dacb">SmartOffice · Akses ruang kerja Anda</text>
+<text x="742" y="110" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#64796c">BUAT AKUN</text>
+<text x="742" y="161" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="700" fill="#203d30">Mulai bersama SmartOffice</text>
+<text x="742" y="199" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Daftar untuk mengakses dashboard Anda.</text>
+<rect x="742" y="237" width="536" height="52" rx="12" fill="#ffffff" stroke="#d9e2d5"/>
+<text x="764" y="271" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#4285f4">G</text>
+<text x="834" y="270" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">Daftar dengan Google</text>
+<text x="742" y="316" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">Akun Google yang diizinkan oleh pengelola ruang kerja.</text>
+<path d="M742 355 L941 355" stroke="#e4eade" fill="none"/>
+<text x="964" y="360" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#64796c">atau</text>
+<path d="M1012 355 L1278 355" stroke="#e4eade" fill="none"/>
+<text x="742" y="400" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#203d30">Nama lengkap</text>
+<rect x="742" y="416" width="536" height="54" rx="11" fill="#ffffff" stroke="#d9e2d5"/>
+<text x="758" y="450" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Nama Anda</text>
+<text x="742" y="505" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#203d30">Email</text>
+<rect x="742" y="521" width="536" height="54" rx="11" fill="#ffffff" stroke="#d9e2d5"/>
+<text x="758" y="555" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">nama@perusahaan.com</text>
+<text x="742" y="610" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#203d30">Kata sandi</text>
+<rect x="742" y="626" width="536" height="54" rx="11" fill="#ffffff" stroke="#d9e2d5"/>
+<text x="758" y="660" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Minimal 12 karakter</text>
+<text x="1187" y="660" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#203d30">Lihat</text>
+<text x="742" y="708" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">Gunakan kata sandi unik yang sulit ditebak.</text>
+<text x="742" y="745" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#64796c">Pendaftaran tidak otomatis memberikan akses ruangan.</text>
+<rect x="742" y="784" width="536" height="42" rx="11" fill="#203d30" stroke="none"/>
+<text x="758" y="811" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#ffffff">Buat akun</text>
+<text x="842" y="872" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#203d30">Sudah punya akun?  Masuk</text>
+<text x="742" y="952" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#64796c">Status berikutnya: verifikasi email / menunggu izin admin.</text>
+</g>
+<g id="screen-7" transform="translate(3080 105)">
+<rect x="0" y="0" width="1440" height="1080" rx="24" fill="#f4f6ef" stroke="none"/>
+<rect x="0" y="0" width="232" height="1080" rx="24" fill="#203d30" stroke="none"/>
+<rect x="210" y="0" width="22" height="1080" rx="0" fill="#203d30" stroke="none"/>
+<rect x="24" y="30" width="36" height="36" rx="10" fill="#7ec486" stroke="none"/>
+<text x="34" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="23" font-weight="700" fill="#203d30">S</text>
+<text x="72" y="48" font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" fill="#ffffff">SmartOffice</text>
+<text x="73" y="68" font-family="Segoe UI, Arial, sans-serif" font-size="9" font-weight="600" fill="#bbd1c0">WORKSPACE INTELLIGENCE</text>
+<text x="26" y="122" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600" fill="#a9c2b0">RUANG KERJA</text>
+<rect x="18" y="138" width="196" height="60" rx="12" fill="#304e3d" stroke="none"/>
+<text x="34" y="164" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#ffffff">Kantor utama</text>
+<text x="34" y="184" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#bbd1c0">1 ruangan · Asia/Jakarta</text>
+<rect x="16" y="222" width="200" height="46" rx="12" fill="#fff2bc" stroke="none"/>
+<path transform="translate(30 234)" d="M2 3 H20 V17 H2 Z M6 21 H16 M11 17 V21" fill="none" stroke="#203d30" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="66" y="251" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#203d30">Monitoring</text>
+<path transform="translate(30 292)" d="M3 5 Q11 -1 19 5 Q11 11 3 5 V17 Q11 23 19 17 V5 M3 11 Q11 17 19 11" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="66" y="309" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#d8e5da">Dataset sensor</text>
+<path transform="translate(30 350)" d="M2 5 H17 V19 H2 Z M17 10 L23 6 V18 L17 14" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="66" y="367" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#d8e5da">Dataset kamera</text>
+<path transform="translate(30 408)" d="M11 1 L21 7 V17 L11 23 L1 17 V7 Z M1 7 L11 13 L21 7 M11 13 V23" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="66" y="425" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#d8e5da">Model</text>
+<path transform="translate(30 466)" d="M2 6 H22 M2 17 H22 M8 2 V10 M16 13 V21" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="66" y="483" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#d8e5da">Pengaturan</text>
+<path d="M24 884 L208 884" stroke="#42604b" fill="none"/>
+<text x="28" y="920" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600" fill="#b6cdbc">PROTOTIPE LOKAL</text>
+<text x="28" y="947" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#d8e5da">Satu sensor, satu ruangan</text>
+<text x="28" y="970" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#b6cdbc">Data demo ditandai jelas.</text>
+<text x="272" y="49" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600" fill="#64796c">SMARTOFFICE  /  MONITORING</text>
+<rect x="1192" y="24" width="104" height="28" rx="14" fill="#eef3e9" stroke="none"/>
+<text x="1204" y="43" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#203d30">DESAIN UI</text>
+<text x="1320" y="44" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">WIB</text>
+<path d="M264 70 L1408 70" stroke="#e4eade" fill="none"/>
+<text x="272" y="122" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#203d30">Monitoring</text>
+<text x="272" y="151" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Notifikasi pengambilan foto · Contoh keadaan berhasil.</text>
+<text x="272" y="1051" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">SmartOffice · Konsep antarmuka / bukan data sensor aktual</text>
+<text x="1260" y="1051" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600" fill="#64796c">07 / DESKTOP</text>
+<rect x="272" y="183" width="1128" height="554" rx="18" fill="#ffffff" stroke="none"/>
+<text x="296" y="217" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#203d30">Pemantauan kamera</text>
+<text x="296" y="242" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#64796c">Pratinjau ilustrasi · Tidak mengaktifkan kamera asli</text>
+<rect x="296" y="269" width="1080" height="356" rx="16" fill="#e8eee2" stroke="none"/>
+<rect x="370" y="350" width="230" height="130" rx="12" fill="#d2deca" stroke="none"/>
+<rect x="402" y="333" width="166" height="18" rx="5" fill="#bed0b6" stroke="none"/>
+<rect x="675" y="350" width="230" height="130" rx="12" fill="#d2deca" stroke="none"/>
+<rect x="707" y="333" width="166" height="18" rx="5" fill="#bed0b6" stroke="none"/>
+<rect x="980" y="350" width="230" height="130" rx="12" fill="#d2deca" stroke="none"/>
+<rect x="1012" y="333" width="166" height="18" rx="5" fill="#bed0b6" stroke="none"/>
+<text x="674" y="550" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#64796c">AREA PRATINJAU KAMERA</text>
+<rect x="296" y="660" width="170" height="42" rx="11" fill="#203d30" stroke="none"/>
+<text x="312" y="687" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#ffffff">Ambil foto</text>
+<text x="490" y="686" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#64796c">Simpan satu frame ke dataset kamera.</text>
+<rect x="895" y="178" width="481" height="114" rx="16" fill="#ffffff" stroke="#b5cfb0"/>
+<rect x="915" y="196" width="112" height="28" rx="14" fill="#dcefdc" stroke="none"/>
+<text x="927" y="215" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#203d30">BERHASIL</text>
+<text x="1043" y="216" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="600" fill="#203d30">Foto berhasil disimpan</text>
+<text x="915" y="246" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#64796c">1 foto ditambahkan ke Dataset kamera.</text>
+<text x="915" y="273" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#203d30">Lihat dataset</text>
+<text x="1339" y="209" font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="400" fill="#64796c">×</text>
+<rect x="272" y="761" width="1128" height="240" rx="18" fill="#ffffff" stroke="none"/>
+<text x="296" y="795" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#203d30">Perilaku notifikasi</text>
+<text x="296" y="832" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">01  Menyimpan foto…</text>
+<text x="296" y="863" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#64796c">Tombol dinonaktifkan selama request berlangsung.</text>
+<text x="848" y="832" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">02  Foto berhasil disimpan</text>
+<text x="848" y="863" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#64796c">Toast muncul hanya setelah server mengonfirmasi.</text>
+<text x="296" y="930" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#64796c">Desktop: kanan atas · Ponsel: bawah · Masuk 180 ms · Hilang setelah 5 detik.</text>
+<text x="296" y="963" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#64796c">Gagal: tampilkan alasan, pertahankan notifikasi, sediakan Coba lagi.</text>
+</g>
+<g id="screen-8" transform="translate(40 1265)">
+<rect x="0" y="0" width="1440" height="1080" rx="24" fill="#f4f6ef" stroke="none"/>
+<rect x="0" y="0" width="232" height="1080" rx="24" fill="#203d30" stroke="none"/>
+<rect x="210" y="0" width="22" height="1080" rx="0" fill="#203d30" stroke="none"/>
+<rect x="24" y="30" width="36" height="36" rx="10" fill="#7ec486" stroke="none"/>
+<text x="34" y="55" font-family="Segoe UI, Arial, sans-serif" font-size="23" font-weight="700" fill="#203d30">S</text>
+<text x="72" y="48" font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700" fill="#ffffff">SmartOffice</text>
+<text x="73" y="68" font-family="Segoe UI, Arial, sans-serif" font-size="9" font-weight="600" fill="#bbd1c0">WORKSPACE INTELLIGENCE</text>
+<text x="26" y="122" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600" fill="#a9c2b0">RUANG KERJA</text>
+<rect x="18" y="138" width="196" height="60" rx="12" fill="#304e3d" stroke="none"/>
+<text x="34" y="164" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#ffffff">Kantor utama</text>
+<text x="34" y="184" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#bbd1c0">1 ruangan · Asia/Jakarta</text>
+<rect x="16" y="222" width="200" height="46" rx="12" fill="#fff2bc" stroke="none"/>
+<path transform="translate(30 234)" d="M2 3 H20 V17 H2 Z M6 21 H16 M11 17 V21" fill="none" stroke="#203d30" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="66" y="251" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="600" fill="#203d30">Monitoring</text>
+<path transform="translate(30 292)" d="M3 5 Q11 -1 19 5 Q11 11 3 5 V17 Q11 23 19 17 V5 M3 11 Q11 17 19 11" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="66" y="309" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#d8e5da">Dataset sensor</text>
+<path transform="translate(30 350)" d="M2 5 H17 V19 H2 Z M17 10 L23 6 V18 L17 14" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="66" y="367" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#d8e5da">Dataset kamera</text>
+<path transform="translate(30 408)" d="M11 1 L21 7 V17 L11 23 L1 17 V7 Z M1 7 L11 13 L21 7 M11 13 V23" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="66" y="425" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#d8e5da">Model</text>
+<path transform="translate(30 466)" d="M2 6 H22 M2 17 H22 M8 2 V10 M16 13 V21" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="66" y="483" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#d8e5da">Pengaturan</text>
+<path d="M24 884 L208 884" stroke="#42604b" fill="none"/>
+<text x="28" y="920" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600" fill="#b6cdbc">PROTOTIPE LOKAL</text>
+<text x="28" y="947" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#d8e5da">Satu sensor, satu ruangan</text>
+<text x="28" y="970" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#b6cdbc">Data demo ditandai jelas.</text>
+<text x="272" y="49" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600" fill="#64796c">SMARTOFFICE  /  MONITORING</text>
+<rect x="1192" y="24" width="104" height="28" rx="14" fill="#eef3e9" stroke="none"/>
+<text x="1204" y="43" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#203d30">DESAIN UI</text>
+<text x="1320" y="44" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">WIB</text>
+<path d="M264 70 L1408 70" stroke="#e4eade" fill="none"/>
+<text x="272" y="122" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#203d30">Monitoring</text>
+<text x="272" y="151" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Konfirmasi logout · Batalkan adalah fokus awal.</text>
+<text x="272" y="1051" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">SmartOffice · Konsep antarmuka / bukan data sensor aktual</text>
+<text x="1260" y="1051" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600" fill="#64796c">08 / DESKTOP</text>
+<rect x="272" y="183" width="1128" height="650" rx="18" fill="#ffffff" stroke="none"/>
+<text x="296" y="217" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#203d30">Ringkasan ruang kerja</text>
+<text x="296" y="242" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#64796c">DEMO · Bukan pembacaan sensor asli</text>
+<rect x="296" y="282" width="336" height="148" rx="16" fill="#f4f6ef" stroke="none"/>
+<text x="316" y="318" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">CO₂</text>
+<text x="316" y="373" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="600" fill="#203d30">850 ppm</text>
+<rect x="656" y="282" width="336" height="148" rx="16" fill="#f4f6ef" stroke="none"/>
+<text x="676" y="318" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Suhu</text>
+<text x="676" y="373" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="600" fill="#203d30">27,0 °C</text>
+<rect x="1016" y="282" width="336" height="148" rx="16" fill="#f4f6ef" stroke="none"/>
+<text x="1036" y="318" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Kelembapan</text>
+<text x="1036" y="373" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="600" fill="#203d30">58 %</text>
+<rect width="1440" height="1080" rx="24" fill="#10251a" opacity="0.46"/>
+<rect x="450" y="324" width="600" height="383" rx="22" fill="#ffffff" stroke="none"/>
+<rect x="482" y="356" width="52" height="52" rx="15" fill="#fff2bc" stroke="none"/>
+<text x="499" y="390" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="600" fill="#203d30">↗</text>
+<text x="482" y="451" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" fill="#203d30">Keluar dari SmartOffice?</text>
+<text x="482" y="494" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#64796c">Anda perlu masuk kembali untuk mengakses dashboard.</text>
+<text x="482" y="530" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Data yang sudah tersimpan tetap tersedia.</text>
+<path d="M482 565 L1018 565" stroke="#e4eade" fill="none"/>
+<rect x="482" y="597" width="252" height="48" rx="11" fill="#ffffff" stroke="#203d30"/>
+<text x="561" y="628" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">Batalkan</text>
+<rect x="750" y="600" width="268" height="42" rx="11" fill="#203d30" stroke="none"/>
+<text x="766" y="627" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#ffffff">Ya, keluar</text>
+<text x="482" y="680" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">Esc untuk batal · Kembali ke tombol Keluar setelah ditutup</text>
+</g>
+<g transform="translate(1560 1265)">
+<rect x="0" y="0" width="1440" height="1080" rx="24" fill="#f4f6ef" stroke="none"/>
+<text x="40" y="65" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="700" fill="#203d30">Sidebar · Urutan animasi</text>
+<text x="40" y="98" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#64796c">Klik tombol chevron untuk mengubah lebar. Item aktif tetap jelas.</text>
+<text x="40" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#64796c">01 / TERBUKA</text>
+<rect x="40" y="185" width="232" height="570" rx="18" fill="#203d30" stroke="none"/>
+<rect x="58" y="208" width="42" height="42" rx="12" fill="#7ec486" stroke="none"/>
+<text x="71" y="238" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#203d30">S</text>
+<text x="112" y="236" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#ffffff">SmartOffice</text>
+<rect x="52" y="286" width="208" height="45" rx="10" fill="#fff2bc" stroke="none"/>
+<path transform="translate(68 296)" d="M2 3 H20 V17 H2 Z M6 21 H16 M11 17 V21" fill="none" stroke="#203d30" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="105" y="313" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#203d30">Monitoring</text>
+<path transform="translate(68 359)" d="M3 5 Q11 -1 19 5 Q11 11 3 5 V17 Q11 23 19 17 V5 M3 11 Q11 17 19 11" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="105" y="376" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#d8e5da">Dataset sensor</text>
+<path transform="translate(68 422)" d="M2 5 H17 V19 H2 Z M17 10 L23 6 V18 L17 14" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="105" y="439" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#d8e5da">Dataset kamera</text>
+<path transform="translate(68 485)" d="M11 1 L21 7 V17 L11 23 L1 17 V7 Z M1 7 L11 13 L21 7 M11 13 V23" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="105" y="502" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#d8e5da">Model</text>
+<path transform="translate(68 548)" d="M2 6 H22 M2 17 H22 M8 2 V10 M16 13 V21" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="105" y="565" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#d8e5da">Pengaturan</text>
+<text x="67" y="710" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="600" fill="#d8e5da">‹   Ciutkan</text>
+<text x="437" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#64796c">02 / TERTUTUP</text>
+<rect x="437" y="185" width="80" height="570" rx="18" fill="#203d30" stroke="none"/>
+<rect x="455" y="208" width="42" height="42" rx="12" fill="#7ec486" stroke="none"/>
+<text x="468" y="238" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#203d30">S</text>
+<rect x="449" y="286" width="56" height="45" rx="10" fill="#fff2bc" stroke="none"/>
+<path transform="translate(465 296)" d="M2 3 H20 V17 H2 Z M6 21 H16 M11 17 V21" fill="none" stroke="#203d30" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path transform="translate(465 359)" d="M3 5 Q11 -1 19 5 Q11 11 3 5 V17 Q11 23 19 17 V5 M3 11 Q11 17 19 11" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path transform="translate(465 422)" d="M2 5 H17 V19 H2 Z M17 10 L23 6 V18 L17 14" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path transform="translate(465 485)" d="M11 1 L21 7 V17 L11 23 L1 17 V7 Z M1 7 L11 13 L21 7 M11 13 V23" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<path transform="translate(465 548)" d="M2 6 H22 M2 17 H22 M8 2 V10 M16 13 V21" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="464" y="710" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="600" fill="#d8e5da">›</text>
+<text x="682" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#64796c">03 / HOVER + TOOLTIP</text>
+<rect x="682" y="185" width="232" height="570" rx="18" fill="#203d30" stroke="none"/>
+<rect x="700" y="208" width="42" height="42" rx="12" fill="#7ec486" stroke="none"/>
+<text x="713" y="238" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#203d30">S</text>
+<text x="754" y="236" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#ffffff">SmartOffice</text>
+<rect x="694" y="286" width="208" height="45" rx="10" fill="#fff2bc" stroke="none"/>
+<path transform="translate(710 296)" d="M2 3 H20 V17 H2 Z M6 21 H16 M11 17 V21" fill="none" stroke="#203d30" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="747" y="313" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#203d30">Monitoring</text>
+<path transform="translate(710 359)" d="M3 5 Q11 -1 19 5 Q11 11 3 5 V17 Q11 23 19 17 V5 M3 11 Q11 17 19 11" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="747" y="376" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#d8e5da">Dataset sensor</text>
+<path transform="translate(710 422)" d="M2 5 H17 V19 H2 Z M17 10 L23 6 V18 L17 14" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="747" y="439" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#d8e5da">Dataset kamera</text>
+<path transform="translate(710 485)" d="M11 1 L21 7 V17 L11 23 L1 17 V7 Z M1 7 L11 13 L21 7 M11 13 V23" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="747" y="502" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#d8e5da">Model</text>
+<path transform="translate(710 548)" d="M2 6 H22 M2 17 H22 M8 2 V10 M16 13 V21" fill="none" stroke="#b6cdbc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="747" y="565" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#d8e5da">Pengaturan</text>
+<text x="709" y="710" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="600" fill="#d8e5da">‹   Ciutkan</text>
+<text x="308" y="453" font-family="Segoe UI, Arial, sans-serif" font-size="42" font-weight="400" fill="#203d30">→</text>
+<text x="563" y="453" font-family="Segoe UI, Arial, sans-serif" font-size="42" font-weight="400" fill="#203d30">→</text>
+<rect x="769" y="413" width="184" height="42" rx="10" fill="#ffffff" stroke="#d9e2d5"/>
+<text x="785" y="440" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#203d30">Dataset kamera</text>
+<rect x="1000" y="185" width="400" height="570" rx="18" fill="#ffffff" stroke="none"/>
+<text x="1024" y="219" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#203d30">Spesifikasi gerak</text>
+<text x="1024" y="280" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">Lebar</text>
+<text x="1024" y="304" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">232 → 80 px</text>
+<text x="1024" y="341" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">Durasi</text>
+<text x="1024" y="365" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">220 ms · ease-out</text>
+<text x="1024" y="402" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">Label menu</text>
+<text x="1024" y="426" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">Fade 120 ms</text>
+<text x="1024" y="463" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">Hover</text>
+<text x="1024" y="487" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">Latar 120 ms</text>
+<text x="1024" y="524" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">Tooltip</text>
+<text x="1024" y="548" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">Delay 400 ms</text>
+<text x="1024" y="585" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">Ponsel</text>
+<text x="1024" y="609" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">Drawer 280 px + overlay</text>
+<text x="1024" y="646" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#64796c">Reduced motion</text>
+<text x="1024" y="670" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">Tanpa transisi</text>
+<rect x="40" y="800" width="1360" height="180" rx="18" fill="#fff2bc" stroke="none"/>
+<text x="64" y="839" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" fill="#203d30">INTERAKSI YANG KONSISTEN</text>
+<text x="64" y="878" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#203d30">Desktop: konten ikut melebar saat sidebar diciutkan. Ponsel: menu menutupi konten, Esc / overlay menutup.</text>
+<text x="64" y="916" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#203d30">Tombol toggle memiliki label aksesibel, fokus terlihat, dan status expanded. Pilihan menu memakai teks + ikon.</text>
+<text x="64" y="952" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#64796c">Storyboard ini menjelaskan gerakan; pratinjau HTML terpisah memperagakan transisi dan dialog.</text>
+</g>
+<g transform="translate(3080 1265)">
+<rect x="0" y="0" width="1440" height="1080" rx="24" fill="#f4f6ef" stroke="none"/>
+<text x="40" y="65" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="700" fill="#203d30">Status &amp; perilaku</text>
+<text x="40" y="98" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#64796c">Rancangan keadaan kosong, error, dan akses akun.</text>
+<rect x="40" y="139" width="650" height="255" rx="18" fill="#ffffff" stroke="none"/>
+<text x="64" y="173" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#203d30">Foto tidak berhasil disimpan</text>
+<rect x="64" y="204" width="90" height="28" rx="14" fill="#f7e3da" stroke="none"/>
+<text x="76" y="223" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#203d30">GAGAL</text>
+<text x="64" y="264" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="600" fill="#203d30">Koneksi ke server terputus.</text>
+<text x="64" y="302" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Foto belum tersimpan. Periksa koneksi lalu coba lagi.</text>
+<rect x="64" y="330" width="160" height="42" rx="11" fill="#203d30" stroke="none"/>
+<text x="80" y="357" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#ffffff">Coba lagi</text>
+<rect x="240" y="330" width="120" height="42" rx="11" fill="#f4f6ef" stroke="none"/>
+<text x="256" y="357" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600" fill="#203d30">Tutup</text>
+<rect x="714" y="139" width="686" height="255" rx="18" fill="#ffffff" stroke="none"/>
+<text x="738" y="173" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#203d30">Masuk dengan Google</text>
+<text x="738" y="222" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="600" fill="#203d30">Pilih akun → verifikasi izin → dashboard</text>
+<text x="738" y="268" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Jika dibatalkan: tetap di halaman login.</text>
+<text x="738" y="305" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Jika belum diizinkan: tampilkan petunjuk hubungi admin.</text>
+<text x="738" y="350" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#64796c">Tidak menyimpan sandi Google di aplikasi.</text>
+<rect x="40" y="418" width="650" height="270" rx="18" fill="#ffffff" stroke="none"/>
+<text x="64" y="452" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#203d30">Login gagal</text>
+<rect x="64" y="485" width="602" height="61" rx="12" fill="#f7e3da" stroke="none"/>
+<text x="82" y="522" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" fill="#203d30">Email atau kata sandi tidak sesuai.</text>
+<text x="64" y="590" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Pertahankan email yang sudah diisi.</text>
+<text x="64" y="627" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Tampilkan error dekat form dan tombol pemulihan akun.</text>
+<rect x="714" y="418" width="686" height="270" rx="18" fill="#ffffff" stroke="none"/>
+<text x="738" y="452" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#203d30">Registrasi berhasil</text>
+<rect x="738" y="483" width="124" height="28" rx="14" fill="#dcefdc" stroke="none"/>
+<text x="750" y="502" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600" fill="#203d30">CEK EMAIL</text>
+<text x="738" y="560" font-family="Segoe UI, Arial, sans-serif" font-size="23" font-weight="600" fill="#203d30">Verifikasi alamat email Anda.</text>
+<text x="738" y="603" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Akses ruangan diberikan sesuai izin pengelola.</text>
+<text x="738" y="644" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="400" fill="#64796c">Tawarkan kirim ulang setelah jeda, bukan otomatis.</text>
+<rect x="40" y="712" width="1360" height="290" rx="18" fill="#ffffff" stroke="none"/>
+<text x="64" y="746" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600" fill="#203d30">Saran desain berikutnya</text>
+<text x="64" y="796" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#203d30">01</text>
+<text x="106" y="796" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#64796c">Prioritaskan Monitoring; pisahkan pengelolaan dataset dari tindakan kamera harian.</text>
+<text x="64" y="845" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#203d30">02</text>
+<text x="106" y="845" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#64796c">Gunakan satu tempat notifikasi dengan riwayat singkat agar toast yang hilang bisa dilihat kembali.</text>
+<text x="64" y="894" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#203d30">03</text>
+<text x="106" y="894" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#64796c">Pastikan status LIVE, DEMO, TERPUTUS terbaca sebagai teks, bukan warna saja.</text>
+<text x="64" y="943" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#203d30">04</text>
+<text x="106" y="943" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#64796c">Uji kontras, keyboard, drawer ponsel, serta preferensi kurangi animasi sebelum implementasi.</text>
+</g>
+</svg>
