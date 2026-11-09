@@ -1,0 +1,22 @@
+# Local device data and credentials must not be committed.
+smartoffice.db*
+instance/
+*.sqlite*
+snapshots/
+training_data/
+dataset_images/
+scd40_real*.csv
+smartoffice_colab_export.zip
+smartoffice_foto_asli_untuk_anotasi.zip
+SmartOffice_gambar_untuk_anotasi.zip
+.env
+.env.local
+.env.*.local
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+apps/web/node_modules/
+apps/web/.next/
+apps/web/test-results/
+apps/web/playwright-report/
