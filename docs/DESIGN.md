@@ -32,6 +32,10 @@ Sidebar desktop tetap ringkas 84 px dan terbuka 268 px saat kursor mendekati tep
 
 Monitoring menampilkan ringkasan metrik dan kamera sebelum panel riwayat sensor agar kondisi ruang lebih cepat ditemukan. Panel dan kartu metrik di halaman ini memakai latar putih solid; kartu grafik sensor memakai teal solid. Blur tetap terbatas pada shell navigasi, sementara halaman lain mengikuti tema sebelumnya. Metadata waktu dan status memakai 12–13 px, deskripsi panel 14 px, serta judul grafik 16 px agar lebih mudah dibaca. Aturan dibatasi oleh `.monitoring-page`.
 
+### Interaksi login, 10 November 2026
+
+Sisi kiri login memakai radar dengan sektor sapuan 90° yang berputar satu putaran dalam 8 detik. Visual ini menggambarkan pemantauan ruang untuk admin, dengan palet teal/mint yang mengikuti identitas aplikasi. Dial ENERGY 2 / RHYTHM 1 / MOTION 2: form tetap menjadi tindakan utama; radar hanya mendukung konteks produk. Label ILUSTRASI dan penjelasan bahwa visual bukan data perangkat mencegah kesan koneksi live. Tombol jeda/lanjutkan memiliki tinggi minimum 44 px; `prefers-reduced-motion` menghentikan animasi otomatis. Radar tidak mengambil data kamera, sensor, atau status privat. Pada layar satu kolom hingga 760 px, radar disembunyikan dan animasinya dihentikan agar form tetap cepat dijangkau, mengikuti perilaku pratinjau login sebelumnya.
+
 OfficeShell, PageHeader, MetricCard, SourceBadge, TimestampLabel, SensorTable,
 DatasetDownloadActions, EmptyState, ConnectionNotice, TrainingSteps, ModelStatusCard.
 

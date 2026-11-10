@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Leaf, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
-import { ProductPreview } from "@/features/landing/product-preview";
+import { LoginRadar } from "./login-radar";
 import type { AdminSession } from "@/lib/types";
 import { requestJSON } from "@/lib/api";
 
@@ -31,7 +31,7 @@ export function LoginForm() {
     return () => { active = false; clearTimeout(timeout); controller.abort(); };
   }, [router]);
   useEffect(() => { if (error) errorRef.current?.focus(); }, [error]);
-  return <main className="login-page"><section className="login-story" aria-label="Smart Office"><a className="brand login-brand" href="/"><span className="brand-symbol"><Leaf size={25} aria-hidden="true" /></span><span>smart<span className="brand-light">office</span><small>WORKSPACE INTELLIGENCE</small></span></a><div className="login-story-content"><span className="login-kicker"><span className="status-dot" />SMART WORKSPACE ANALYTICS</span><h1>Semua data ruang.<br /><em>Satu pandangan jelas.</em></h1><p>Masuk untuk memantau aktivitas ruang, membaca kondisi lingkungan, dan menelusuri riwayat data.</p><ProductPreview compact /></div><div className="login-story-footer"><ShieldCheck size={19} aria-hidden="true" /><p>AKSES ADMIN <span>/</span> PEMROSESAN LOKAL</p></div></section>
+  return <main className="login-page"><section className="login-story" aria-label="Smart Office"><a className="brand login-brand" href="/"><span className="brand-symbol"><Leaf size={25} aria-hidden="true" /></span><span>smart<span className="brand-light">office</span><small>WORKSPACE INTELLIGENCE</small></span></a><div className="login-story-content"><span className="login-kicker"><span className="status-dot" />SMART WORKSPACE ANALYTICS</span><h1>Semua data ruang.<br /><em>Satu pandangan jelas.</em></h1><p>Masuk untuk memantau aktivitas ruang, membaca kondisi lingkungan, dan menelusuri riwayat data.</p><LoginRadar /></div><div className="login-story-footer"><ShieldCheck size={19} aria-hidden="true" /><p>AKSES ADMIN <span>/</span> PEMROSESAN LOKAL</p></div></section>
     <section className="login-form-side"><a className="login-backlink" href="/"><ArrowLeft size={15} aria-hidden="true" />Kembali ke beranda</a><div className="login-card"><span className="login-lock"><LockKeyhole size={25} aria-hidden="true" /></span><div className="eyebrow">SELAMAT DATANG KEMBALI</div><h2>Masuk ke ruang kendali.</h2><p>Gunakan akun admin untuk mengelola Smart Office.</p>
       {reason && !error && <div className="login-notice" role="status">{reason === "server" ? "Server belum dapat memverifikasi sesi. Periksa backend, lalu coba masuk kembali." : "Sesi Anda telah berakhir. Silakan masuk kembali."}</div>}
       {!configured && <div className="login-notice"><strong>Siapkan akun admin pertama</strong><p>Di komputer server, jalankan <code>python manage_admin.py</code>, lalu buat nama pengguna dan kata sandi. Setelah selesai, langsung masuk di sini.</p></div>}
