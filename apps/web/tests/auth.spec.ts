@@ -66,19 +66,3 @@ test("login fits mobile and desktop without polling camera or status", async ({ 
   const calls = await (await request.get("http://127.0.0.1:5051/test/calls")).json();
   expect(calls.some((call: { path: string }) => call.path === "/api/status")).toBe(false);
 });
-
-test("login radar can pause and follows reduced motion without device requests", async ({ page, request }) => {
-  await page.goto("/login");
-  await expect(page.getByText("ILUSTRASI", { exact: true })).toBeVisible();
-  const sweep = page.locator(".radar-sweep");
-  await expect(sweep).toHaveCSS("animation-play-state", "running");
-  await page.getByRole("button", { name: "Jeda animasi radar" }).click();
-  await expect(sweep).toHaveCSS("animation-play-state", "paused");
-  await page.getByRole("button", { name: "Lanjutkan animasi radar" }).click();
-  await expect(sweep).toHaveCSS("animation-play-state", "running");
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(sweep).toHaveCSS("animation-name", "none");
-  await expect(page.getByRole("button", { name: "Jeda animasi radar" })).toBeDisabled();
-  const calls = await (await request.get("http://127.0.0.1:5051/test/calls")).json();
-  expect(calls.some((call: { path: string }) => ["/api/status", "/video_feed"].includes(call.path))).toBe(false);
-});

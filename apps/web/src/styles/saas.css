@@ -266,35 +266,6 @@ tbody tr:hover { background: #edf6fa; }
 .login-input input::placeholder { color: #5c7384; }
 .login-notice { background: #eaf4f7; border-color: #c7e1ea; }
 .login-footer { margin-top: 28px; }
-/* A 90-degree sweep illustrates sensing without implying a live device connection. */
-.login-radar { margin-top: 26px; width: 100%; max-width: 410px; border: 1px solid #81b4bc; border-radius: 18px; padding: 16px; background: #143d49; }
-.radar-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; color: #d1eaec; font-size: 12px; letter-spacing: .5px; }
-.radar-demo { border: 1px solid #81b4bc; border-radius: 4px; padding: 3px 6px; font-size: 11px; }
-.radar-field { position: relative; width: min(100%,270px); aspect-ratio: 1; margin: 16px auto; border-radius: 50%; overflow: hidden; background: #10333f; }
-.radar-ring { position: absolute; border: 1px solid #5f929c; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%); }
-.radar-ring-inner { width: 33%; height: 33%; }
-.radar-ring-middle { width: 66%; height: 66%; }
-.radar-ring-outer { width: 99%; height: 99%; }
-.radar-cross { position: absolute; background: #5f929c; }
-.radar-cross-horizontal { width: 100%; height: 1px; top: 50%; }
-.radar-cross-vertical { height: 100%; width: 1px; left: 50%; }
-.radar-sweep { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg,transparent 0deg,#8ae5d440 60deg,#b7f3dfaa 89deg,transparent 90deg); animation: radar-orbit 8s linear infinite; }
-.radar-center,.radar-point { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #c4f6e8; border: 2px solid #10333f; }
-.radar-center { left: calc(50% - 4px); top: calc(50% - 4px); }
-.radar-point-one { left: 67%; top: 27%; }
-.radar-point-two { left: 29%; top: 61%; }
-.radar-point-three { left: 67%; top: 75%; }
-.radar-angle { position: absolute; top: 12%; right: 20%; color: #d1eaec; font-size: 12px; }
-.radar-footer { display: flex; align-items: center; gap: 12px; border-top: 1px solid #5f929c; padding-top: 10px; }
-.radar-footer p { flex: 1; margin: 0; font-size: 12px; line-height: 1.6; color: #d1eaec; }
-.radar-footer button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 8px 10px; flex-shrink: 0; border: 1px solid #81b4bc; border-radius: 8px; color: #e7f8f3; background: #245765; cursor: pointer; }
-.radar-footer button:hover:not(:disabled) { background: #326c78; }
-.radar-footer button:active:not(:disabled) { background: #143d49; }
-.radar-footer button:disabled { opacity: .7; cursor: default; }
-.radar-field[data-paused=true] .radar-sweep { animation-play-state: paused; }
-@keyframes radar-orbit { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion:reduce) { .radar-sweep { animation: none; transform: rotate(25deg); } }
-@media (max-width:760px) { .login-radar { display: none; } .radar-sweep { animation: none; } }
 @supports not (backdrop-filter: blur(1px)) { .panel,.metric-card,.product-preview,.glass-feature,.pricing-card,.login-card { background-color: #fff; } }
 @media (max-width:1200px) {
   .public-header,.public-main,.public-footer { width: calc(100% - 64px); }

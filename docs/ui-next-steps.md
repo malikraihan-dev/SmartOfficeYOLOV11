@@ -10,4 +10,4 @@ Usulan ini belum diimplementasikan. Prioritaskan manfaat operator dan data yang 
 6. **Model:** tampilkan versi aktif, status validasi dan pembanding metrik hanya bila artefak serta hasil evaluasi nyata tersedia.
 7. **Pengaturan:** tandai perubahan belum disimpan dan tampilkan ringkasan konfigurasi yang benar-benar berhasil diterapkan. Pertahankan konfirmasi hapus yang sudah ada.
 
-Login sudah mendapat interaksi radar yang diminta. Hindari animasi baru pada setiap kartu dashboard: perhatian operator sebaiknya mengikuti perubahan status nyata.
+Login dikembalikan ke pratinjau produk sebelumnya sesuai permintaan pengguna. Hindari animasi baru pada setiap kartu dashboard: perhatian operator sebaiknya mengikuti perubahan status nyata.
