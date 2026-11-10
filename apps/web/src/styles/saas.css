@@ -107,6 +107,25 @@ tbody tr:hover { background: #edf6fa; }
 .live-chart-card .preview-tabs { background: #123d4c55; border-color: #c1e1e530; }
 .live-chart-card .preview-tabs button { color: #d3e8ed; }
 .live-chart-card .preview-tabs button[aria-pressed=true] { background: #e6f7f3; color: #164c56; }
+/* Monitoring prioritizes readable measurements; shared public surfaces keep their existing treatment. */
+.monitoring-page .panel,.monitoring-page .metric-card { background: #fff; border-color: var(--border); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 2px 8px #17344005; }
+.monitoring-page .live-telemetry { margin-top: 24px; gap: 24px; padding: 24px; }
+.monitoring-page .live-chart-card { background: #235764; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+.monitoring-page .live-telemetry h2 { font-size: clamp(22px,2vw,28px); letter-spacing: -.6px; }
+.monitoring-page .live-telemetry .saas-kicker { font-size: 12px; letter-spacing: .8px; }
+.monitoring-page .live-telemetry-intro > p { font-size: 14px; line-height: 1.65; }
+.monitoring-page .live-telemetry-intro > a,.monitoring-page .telemetry-source { font-size: 13px; }
+.monitoring-page .live-chart-header > div > span { font-size: 12px; letter-spacing: .6px; }
+.monitoring-page .live-chart-header h3 { font-size: 16px; }
+.monitoring-page .live-chart-value > span,.monitoring-page .live-chart-value > small,.monitoring-page .live-chart-footer { font-size: 12px; }
+.monitoring-page .live-chart-footer { line-height: 1.5; }
+.monitoring-page .preview-tabs button { font-size: 12px; }
+.monitoring-page .telemetry-axis { font-size: 13px; }
+.monitoring-page .section-label > span,.monitoring-page .metric-bottom > small,.monitoring-page .camera-overlay > span,.monitoring-page .camera-toolbar,.monitoring-page .camera-timestamp,.monitoring-page .source-row small,.monitoring-page .chart-caption,.monitoring-page .snapshot small,.monitoring-page .activity-history small { font-size: 13px; }
+.monitoring-page .panel-head p,.monitoring-page .activity-card > p,.monitoring-page .empty-state p,.monitoring-page .dataset-callout p { font-size: 14px; }
+.monitoring-page .badge,.monitoring-page .source-row .badge,.monitoring-page .activity-card .eyebrow { font-size: 12px; }
+.monitoring-page .activity-stats span { font-size: 12px; }
+.monitoring-page .section-label { flex-wrap: wrap; }
 /* Product illustration: every value is explicitly marked as demo. */
 .product-preview { width: 100%; position: relative; border: 1px solid #ffffff; border-radius: 19px; background: #ffffffb8; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 25px 65px #24577315,0 3px 6px #24577306; text-align: left; color: var(--foreground); }
 .preview-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 17px 21px; border-bottom: 1px solid #dbe8f0; background: #ffffff50; border-radius: 19px 19px 0 0; }

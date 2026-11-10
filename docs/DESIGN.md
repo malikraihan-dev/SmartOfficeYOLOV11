@@ -28,6 +28,10 @@ Sidebar desktop tetap ringkas 84 px dan terbuka 268 px saat kursor mendekati tep
 
 ## Komponen yang dapat dipakai ulang
 
+### Penyesuaian monitoring, 10 November 2026
+
+Monitoring menampilkan ringkasan metrik dan kamera sebelum panel riwayat sensor agar kondisi ruang lebih cepat ditemukan. Panel dan kartu metrik di halaman ini memakai latar putih solid; kartu grafik sensor memakai teal solid. Blur tetap terbatas pada shell navigasi, sementara halaman lain mengikuti tema sebelumnya. Metadata waktu dan status memakai 12–13 px, deskripsi panel 14 px, serta judul grafik 16 px agar lebih mudah dibaca. Aturan dibatasi oleh `.monitoring-page`.
+
 OfficeShell, PageHeader, MetricCard, SourceBadge, TimestampLabel, SensorTable,
 DatasetDownloadActions, EmptyState, ConnectionNotice, TrainingSteps, ModelStatusCard.
 
