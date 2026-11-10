@@ -41,6 +41,12 @@ Pricing pada beranda menjelaskan aplikasi lokal, kebutuhan perangkat, dan pengem
 
 ## Perilaku dataset
 
+Monitoring memiliki strip status kamera, SCD40 dan audio. Umur frame/pembacaan dihitung dari timestamp sumber, terpisah dari waktu pemeriksaan server; audio hanya menyatakan ketersediaan karena API belum memberi timestamp segmen. Penghitung umur bukan live-region agar tidak mengganggu pembaca layar setiap detik.
+
+Grafik sensor menyediakan 12 terbaru, 1 jam, 24 jam dan 7 hari; rentang berbatas maksimum 200 pembacaan terbaru, bukan agregasi seluruh periode. Backend menerapkan parameter `period`, `from` dan `to` dengan query terparameterisasi. Filter tanggal dataset memakai tengah malam zona browser, mengubahnya ke ISO UTC, dan menerapkan akhir rentang eksklusif pada hari berikutnya. Ringkasan, tabel dan ekspor CSV memakai rentang identik. Data filter sebelumnya dikosongkan ketika URL polling berubah.
+
+Gambar evaluasi kamera dibuka dalam dialog native dengan tombol tutup, Escape dan pengembalian fokus. Pengaturan deteksi dan audio menunjukkan perubahan belum disimpan berdasarkan nilai terakhir yang berhasil dikirim; kegagalan menyimpan tidak menghapus penanda. Polling tidak menimpa edit pengguna.
+
 Ringkasan mengambil data asli yang tersimpan, bukan angka buatan. Empty state menjelaskan bahwa
 ESP32 harus mengirim data. Unduh CSV asli nonaktif bila belum ada baris atau API gagal.
 Dummy diberi nama yang eksplisit. Tabel menampilkan 12 data terbaru, sementara ekspor mencakup

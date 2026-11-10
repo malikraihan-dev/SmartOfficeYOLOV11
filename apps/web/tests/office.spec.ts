@@ -59,10 +59,12 @@ test("settings preserve edits during polling and submit normalized zone", async 
   const save = page.getByRole("button", { name: "Terapkan pengaturan" });
   await expect(save).toBeEnabled();
   await page.getByLabel("Ambang confidence").fill("50");
+  await expect(page.getByText("Perubahan deteksi belum disimpan", { exact: true })).toBeVisible();
   await page.waitForTimeout(4300);
   await expect(page.getByLabel("Ambang confidence")).toHaveValue("50");
   await save.click();
   await expect(page.getByText("Perubahan berhasil disimpan.")).toBeVisible();
+  await expect(page.getByText("Pengaturan deteksi tersimpan", { exact: true })).toBeVisible();
   const calls = await (await request.get("http://127.0.0.1:5051/test/calls")).json();
   expect(calls.find((call: { path: string }) => call.path === "/api/detection/settings").body).toEqual({ confidence: .5, zone: { x1: .12, y1: .15, x2: .88, y2: .92 } });
 });

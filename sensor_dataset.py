@@ -1,6 +1,7 @@
 """SCD40 dataset storage and read-only exports, separate from camera inference."""
 import csv
 import io
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from flask import jsonify, request, Response, stream_with_context, send_file
 
@@ -17,6 +18,32 @@ def init_sensor_schema(db):
 
 
 def register_sensor_dataset(app, db_connect):
+    def filters():
+        clauses, values = [], []
+        period = request.args.get('period')
+        if period:
+            hours = {'1h': 1, '24h': 24, '7d': 168}.get(period)
+            if hours is None:
+                raise ValueError('Periode tidak valid.')
+            clauses.append('julianday(timestamp) >= julianday(?)')
+            values.append((datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat())
+        bounds = {}
+        for key, operator in [('from', '>='), ('to', '<')]:
+            raw = request.args.get(key)
+            if raw:
+                try:
+                    parsed = datetime.fromisoformat(raw.replace('Z', '+00:00'))
+                    if parsed.tzinfo is None:
+                        raise ValueError
+                except ValueError:
+                    raise ValueError('Tanggal harus ISO 8601 dengan zona waktu.')
+                bounds[key] = parsed
+                clauses.append(f'julianday(timestamp) {operator} julianday(?)')
+                values.append(parsed.isoformat())
+        if 'from' in bounds and 'to' in bounds and bounds['from'] >= bounds['to']:
+            raise ValueError('Tanggal akhir harus setelah tanggal awal.')
+        return (' WHERE ' + ' AND '.join(clauses) if clauses else ''), values
+
     @app.get('/api/sensors/dataset')
     def sensor_dataset_summary():
         try:
@@ -25,13 +52,17 @@ def register_sensor_dataset(app, db_connect):
                 raise ValueError
         except ValueError:
             return jsonify(message='limit harus 1 sampai 200.'), 400
+        try:
+            where, values = filters()
+        except ValueError as exc:
+            return jsonify(message=str(exc)), 400
         db = db_connect()
         try:
             summary = dict(db.execute('''SELECT COUNT(*) AS total_rows,
                 MIN(timestamp) AS first_at, MAX(timestamp) AS last_at
-                FROM sensor_readings''').fetchone())
+                FROM sensor_readings''' + where, values).fetchone())
             rows = [dict(row) for row in db.execute(
-                'SELECT * FROM sensor_readings ORDER BY id DESC LIMIT ?', (limit,))]
+                'SELECT * FROM sensor_readings' + where + ' ORDER BY julianday(timestamp) DESC, id DESC LIMIT ?', (*values, limit))]
         finally:
             db.close()
         response = jsonify(**summary, source='scd40', rows=rows,
@@ -42,6 +73,10 @@ def register_sensor_dataset(app, db_connect):
 
     @app.get('/api/sensors/export')
     def export_sensor_dataset():
+        try:
+            where, values = filters()
+        except ValueError as exc:
+            return jsonify(message=str(exc)), 400
         def generate():
             db = db_connect()
             buffer = io.StringIO()
@@ -52,7 +87,7 @@ def register_sensor_dataset(app, db_connect):
                 yield buffer.getvalue()
                 buffer.seek(0); buffer.truncate(0)
                 # One ordered cursor gives a consistent SQLite read snapshot during download.
-                for row in db.execute('SELECT '+','.join(columns)+' FROM sensor_readings ORDER BY timestamp'):
+                for row in db.execute('SELECT '+','.join(columns)+' FROM sensor_readings' + where + ' ORDER BY julianday(timestamp), id', values):
                     writer.writerow(tuple(row))
                     yield buffer.getvalue()
                     buffer.seek(0); buffer.truncate(0)

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Camera, Check, ImageIcon } from "lucide-react";
 import { CameraPanel } from "@/components/camera-panel";
+import { ImagePreview } from "@/components/image-preview";
 import { ActionFeedback } from "@/components/action-feedback";
 import { Badge, ConnectionNotice, DownloadLink, EmptyState, LoadingState, MetricCard, PageHeader, Panel } from "@/components/ui";
 import { usePoll } from "@/lib/use-poll";
@@ -26,6 +27,6 @@ function ReviewSample({ sample, refresh }: { sample: VisionSample; refresh: () =
   const [count, setCount] = useState(String(sample.actual_count ?? sample.predicted_count));
   const action = useAction();
   return <form className="review-sample" onSubmit={async event => { event.preventDefault(); if (await action.run(`/api/evaluation/${sample.id}/review`, { actual_count: Number(count) }, "Ulasan tersimpan.")) refresh(); }}>
-    <a href={sample.image_url} target="_blank" rel="noreferrer"><img src={sample.image_url} alt={`Sampel deteksi nomor ${sample.id}. Buka gambar penuh untuk meninjau jumlah orang.`} loading="lazy" /></a><div className="sample-info"><h3>Sampel #{sample.id} <Badge tone={sample.actual_count === null ? "amber" : "green"}>{sample.actual_count === null ? "BELUM DITINJAU" : "DITINJAU"}</Badge></h3><p>{sample.predicted_count} orang diprediksi · confidence {number(sample.confidence, 1)}%</p><small>{timestamp(sample.captured_at)}</small><ActionFeedback {...action} /></div><div className="review-controls"><label htmlFor={`count-${sample.id}`}>Jumlah aktual</label><div><input id={`count-${sample.id}`} type="number" min={0} max={100} step={1} required value={count} onChange={event => setCount(event.target.value)} /><button className="button" disabled={action.busy}>{action.busy ? "Menyimpan…" : "Konfirmasi"}</button></div></div>
+    <ImagePreview src={sample.image_url} label={`Sampel deteksi nomor ${sample.id}`} /><div className="sample-info"><h3>Sampel #{sample.id} <Badge tone={sample.actual_count === null ? "amber" : "green"}>{sample.actual_count === null ? "BELUM DITINJAU" : "DITINJAU"}</Badge></h3><p>{sample.predicted_count} orang diprediksi · confidence {number(sample.confidence, 1)}%</p><small>{timestamp(sample.captured_at)}</small><ActionFeedback {...action} /></div><div className="review-controls"><label htmlFor={`count-${sample.id}`}>Jumlah aktual</label><div><input id={`count-${sample.id}`} type="number" min={0} max={100} step={1} required value={count} onChange={event => setCount(event.target.value)} /><button className="button" disabled={action.busy}>{action.busy ? "Menyimpan…" : "Konfirmasi"}</button></div></div>
   </form>;
 }

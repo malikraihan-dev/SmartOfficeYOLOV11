@@ -1,6 +1,6 @@
 # Usulan UI berikutnya
 
-Usulan ini belum diimplementasikan. Prioritaskan manfaat operator dan data yang tersedia, bukan jumlah efek visual.
+Pembaruan: strip status perangkat, filter periode grafik/tanggal dataset sensor, dialog gambar evaluasi, serta penanda pengaturan belum disimpan telah diimplementasikan. Pagination, penataan ulang panel ponsel dan pembanding model tetap usulan. Prioritaskan manfaat operator dan data yang tersedia, bukan jumlah efek visual.
 
 1. **Monitoring:** satukan status kamera, sensor, audio dan umur pembacaan dalam strip ringkas dekat judul. Bedakan kondisi perangkat dan pembacaan terakhir; kamera terputus tidak berarti riwayat hilang.
 2. **Grafik:** filter periode dengan sumber historis nyata. API saat ini membatasi grafik ke 12 baris; tambahkan dukungan rentang di backend sebelum menampilkan pilihan 1 jam/24 jam/7 hari.

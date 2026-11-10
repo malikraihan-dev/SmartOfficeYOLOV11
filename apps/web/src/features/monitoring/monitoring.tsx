@@ -6,6 +6,7 @@ import { useOffice } from "@/components/office-provider";
 import { Badge, ConnectionNotice, EmptyState, LoadingState, MetricCard, PageHeader, Panel } from "@/components/ui";
 import { CameraPanel } from "@/components/camera-panel";
 import { LiveTelemetry } from "./live-telemetry";
+import { DeviceStatus } from "@/components/device-status";
 import { cameraLive, number, sensorState, timestamp } from "@/lib/api";
 
 export function Monitoring() {
@@ -27,6 +28,7 @@ export function Monitoring() {
       <button className="button secondary" onClick={() => setPaused(!paused)}>{paused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}{paused ? "Lanjutkan pembaruan" : "Jeda pembaruan"}</button>
     </PageHeader>
     <ConnectionNotice error={error} retry={refresh} />
+    <DeviceStatus />
     {paused && <div className="info-notice" role="status">Pembaruan status dijeda. Angka yang terlihat adalah pembacaan terakhir; pratinjau kamera memiliki kontrol jeda terpisah.</div>}
     <div className="section-label"><h2>Ringkasan ruang</h2><span>{loading && !data ? "Mengambil status…" : updatedAt ? `Diperiksa ${timestamp(updatedAt, true)}` : "Menunggu server"}</span></div>
     <div className="metrics-grid">

@@ -127,6 +127,30 @@ tbody tr:hover { background: #edf6fa; }
 .monitoring-page .activity-stats span { font-size: 12px; }
 .monitoring-page .section-label { flex-wrap: wrap; }
 /* Product illustration: every value is explicitly marked as demo. */
+.device-status-strip { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 16px; padding: 18px; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
+.device-status-strip > div,.device-status-strip > p { margin: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.device-status-strip span { color: var(--primary); font-weight: 600; }
+.device-status-strip small { color: var(--muted); font-size: 12px; }
+.date-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; background: white; border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 24px; }
+.date-filter > div { display: grid; gap: 6px; min-width: 0; }
+.date-filter label,.period-filter label { font-size: 13px; font-weight: 600; }
+.date-filter input,.period-filter select { font: inherit; min-height: 44px; min-width: 0; max-width: 100%; border: 1px solid #94b8c8; border-radius: 8px; padding: 8px; background: white; color: #173440; }
+.date-filter p { width: 100%; font-size: 13px; color: var(--muted); }
+.period-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; }
+.period-filter small { width: 100%; font-size: 12px; color: #d1eaec; }
+.settings-save-state { padding: 10px 12px; margin: 14px 0; background: #edf5f3; color: #266044; border-radius: 8px; font-size: 13px; }
+.settings-save-state.is-dirty { background: #fff4dd; color: #785718; }
+.image-preview-trigger { border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--primary); padding: 4px; cursor: pointer; max-width: 100%; }
+.image-preview-trigger:hover { background: #eaf4f7; }
+.image-preview-trigger span { display: block; font-size: 12px; padding: 8px 2px; }
+.image-preview-dialog { margin: auto; width: min(960px,calc(100% - 32px)); max-height: 90dvh; overflow: auto; border: 1px solid var(--border); border-radius: 14px; padding: 20px; background: white; color: var(--foreground); }
+.image-preview-dialog::backdrop { background: #102e3bd9; }
+.image-preview-dialog header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.image-preview-dialog h2 { font-size: 20px; }
+.review-sample .image-preview-dialog > img { width: 100%; height: auto; max-height: 65dvh; object-fit: contain; aspect-ratio: auto; }
+.image-preview-dialog p { margin-top: 12px; font-size: 14px; }
+@media (max-width:760px) { .device-status-strip { grid-template-columns: repeat(2,minmax(0,1fr)); } .date-filter > div { flex: 1 1 130px; } }
+/* Product illustration: every value is explicitly marked as demo. */
 .product-preview { width: 100%; position: relative; border: 1px solid #ffffff; border-radius: 19px; background: #ffffffb8; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); box-shadow: 0 25px 65px #24577315,0 3px 6px #24577306; text-align: left; color: var(--foreground); }
 .preview-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 17px 21px; border-bottom: 1px solid #dbe8f0; background: #ffffff50; border-radius: 19px 19px 0 0; }
 .preview-toolbar > span:first-child { display: flex; align-items: center; gap: 8px; color: #31556b; font-size: 11px; font-weight: 600; }

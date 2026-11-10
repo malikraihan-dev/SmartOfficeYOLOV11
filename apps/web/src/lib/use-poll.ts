@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { requestJSON } from "./api";
 
 export function usePoll<T>(path: string, interval = 5000, paused = false) {
@@ -8,8 +8,10 @@ export function usePoll<T>(path: string, interval = 5000, paused = false) {
   const [loading, setLoading] = useState(true);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [generation, setGeneration] = useState(0);
+  const previousPath = useRef(path);
   const refresh = useCallback(() => setGeneration(n => n + 1), []);
   useEffect(() => {
+    if (previousPath.current !== path) { setData(null); setError(null); setUpdatedAt(null); setLoading(true); previousPath.current = path; }
     let disposed = false;
     let running = false;
     let timer: ReturnType<typeof setTimeout>;
