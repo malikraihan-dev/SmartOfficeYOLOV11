@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --webpack --hostname 127.0.0.1",
-    "dev:compat": "node scripts/next-compat.mjs dev",
+    "dev": "node scripts/dev.mjs",
+    "dev:compat": "node scripts/dev.mjs --compat",
+    "dev:web": "next dev --webpack --hostname 127.0.0.1",
+    "dev:web:compat": "node scripts/next-compat.mjs dev",
+    "test:launcher": "node --test scripts/dev.test.mjs",
     "build": "next build --webpack",
     "build:compat": "node scripts/next-compat.mjs build",
     "start": "next start --hostname 127.0.0.1",

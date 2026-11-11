@@ -1,0 +1,9 @@
+{
+  "name": "smartoffice-local",
+  "private": true,
+  "scripts": {
+    "dev": "node apps/web/scripts/dev.mjs",
+    "dev:compat": "node apps/web/scripts/dev.mjs --compat",
+    "test:launcher": "node --test apps/web/scripts/dev.test.mjs"
+  }
+}

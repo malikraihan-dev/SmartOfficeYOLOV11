@@ -4,11 +4,13 @@ Next.js App Router, React, TypeScript dan CSS tokens. Tidak mengakses SQLite, mo
 
 ## Jalankan
 
-1. Dari root `SmartOffice_YOLOv11`, buat akun sekali dengan `python manage_admin.py`, lalu jalankan `python app.py`.
-2. Pada terminal kedua di folder ini: `npm ci`, lalu `npm run dev`.
+1. Siapkan dependensi Python dari `requirements.txt`, jalankan `npm ci` di folder ini, lalu buat akun sekali dari root `SmartOffice_YOLOv11` dengan `python manage_admin.py`.
+2. Jalankan `npm run dev` dari folder ini atau root proyek. Satu terminal menjalankan Flask dan Next.js bersama. Hentikan server lama pada port 3000/5000 terlebih dahulu. Ctrl+C menghentikan kedua proses; kegagalan satu layanan menghentikan pasangannya.
 3. Buka http://127.0.0.1:3000/login dan masuk dengan akun yang dibuat. API default http://127.0.0.1:5000.
 
-Jika compiler native SWC diblokir Application Control Windows, gunakan `npm run dev:compat`. Runner ini memilih `@next/swc-wasm-nodejs` melalui override internal `NEXT_TEST_WASM_DIR`; dependensi dikunci oleh lockfile. Gunakan runner normal jika compiler native didukung. Periksa kompatibilitas override setiap memperbarui Next.js.
+Launcher memakai WebAssembly otomatis di Windows; `npm run dev:compat` juga memilihnya secara eksplisit. Backend lokal port 5000 selalu digunakan oleh launcher. Python berasal dari `SMARTOFFICE_PYTHON`, virtual environment aktif, `.venv` root, atau `python`. Gunakan `npm run dev -- --port 3001` untuk port frontend lain; origin autentikasi backend mengikuti port tersebut.
+
+Untuk frontend saja (backend sudah berjalan/eksternal), gunakan `npm run dev:web` atau `npm run dev:web:compat` untuk WebAssembly. Jalur frontend saja membaca konfigurasi API dari `.env.local`; Playwright memakai jalur ini agar tidak menyalakan Python/perangkat produksi. Override `NEXT_TEST_WASM_DIR` adalah API internal; periksa kembali saat memperbarui Next.js.
 
 Produksi lokal: `npm run build` lalu `npm start`. Jalur WebAssembly: `npm run build:compat` lalu `npm start`. Konfigurasi backend melalui `.env.local` mengikuti `.env.example`, tanpa prefix NEXT_PUBLIC. Mulai ulang/build ulang setelah mengubah backend karena rewrites disiapkan oleh konfigurasi Next.js.
 
@@ -40,6 +42,7 @@ Form pengaturan hanya diinisialisasi sekali agar polling tidak menimpa suntingan
 
 ```powershell
 npm run typecheck
+npm run test:launcher
 npm run build:compat
 npm run test:e2e
 ```
