@@ -1,5 +1,7 @@
 # Login admin lokal
 
+Rencana Google SSO, register pengguna, dan persetujuan admin tersedia di [AUTH_SSO_REGISTRATION.md](AUTH_SSO_REGISTRATION.md). Rencana tersebut belum diimplementasikan; dokumen ini menjelaskan login yang aktif saat ini.
+
 ## Siapkan akun sekali
 
 Dari root proyek jalankan `python manage_admin.py` atau `setup_admin.bat`. Isi nama pengguna (default nama: admin) dan kata sandi 12–128 karakter; input kata sandi tidak ditampilkan. Tidak ada kata sandi default. Skrip tidak membuka kamera, memuat model, atau mengubah database sensor. Menjalankan kembali dengan nama yang sama mereset hash kata sandi dan mencabut semua sesi akun tersebut.
