@@ -8,6 +8,10 @@ Beranda **http://127.0.0.1:3000/** kini berupa landing page SaaS dengan kartu ka
 
 ## Menjalankan frontend baru
 
+Peta struktur kode tersedia melalui [Graphify khusus proyek](docs/GRAPHIFY.md), termasuk cara query dan memperbarui grafik selama pengembangan.
+
+Rancangan sebelum implementasi: [Google SSO, pendaftaran pengguna, dan persetujuan admin](docs/AUTH_SSO_REGISTRATION.md), mencakup arsitektur, struktur modul/database, kontrak API, dan tahapan migrasi.
+
 Kebutuhan tambahan: Node.js 22.20+ dengan npm. Python tetap memakai dependensi di `requirements.txt`.
 
 Dari folder `SmartOffice_YOLOv11`, siapkan dependensi dan akun admin sekali:
