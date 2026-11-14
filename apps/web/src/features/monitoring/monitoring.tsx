@@ -6,6 +6,7 @@ import { useOffice } from "@/components/office-provider";
 import { Badge, ConnectionNotice, EmptyState, LoadingState, MetricCard, PageHeader, Panel } from "@/components/ui";
 import { CameraPanel } from "@/components/camera-panel";
 import { LiveTelemetry } from "./live-telemetry";
+import { DeviceStatus } from "@/components/device-status";
 import { cameraLive, number, sensorState, timestamp } from "@/lib/api";
 
 export function Monitoring() {
@@ -22,13 +23,13 @@ export function Monitoring() {
   }, [data, updatedAt, error, paused]);
   const sensorNote = source === "DEMO" ? "Simulasi · bukan data alat" : source === "LIVE" ? "Pembacaan SCD40 terbaru" : "Pembacaan belum dapat dipercaya";
   const sensorValue = (value: number | null | undefined, digits = 0) => !error && data ? number(value, digits) : "--";
-  return <>
+  return <div className="monitoring-page">
     <PageHeader eyebrow="PUSAT KENDALI / MONITORING" title="Monitoring ruang kerja" description="Pantau okupansi, aktivitas, dan kondisi ruang dari sumber yang jelas.">
       <button className="button secondary" onClick={() => setPaused(!paused)}>{paused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}{paused ? "Lanjutkan pembaruan" : "Jeda pembaruan"}</button>
     </PageHeader>
     <ConnectionNotice error={error} retry={refresh} />
+    <DeviceStatus />
     {paused && <div className="info-notice" role="status">Pembaruan status dijeda. Angka yang terlihat adalah pembacaan terakhir; pratinjau kamera memiliki kontrol jeda terpisah.</div>}
-    <LiveTelemetry />
     <div className="section-label"><h2>Ringkasan ruang</h2><span>{loading && !data ? "Mengambil status…" : updatedAt ? `Diperiksa ${timestamp(updatedAt, true)}` : "Menunggu server"}</span></div>
     <div className="metrics-grid">
       <MetricCard label="Okupansi ruang" value={live ? number(data?.person_count) : "--"} unit="orang" icon={<Users size={21} />} note={live ? "Terdeteksi dari kamera" : "Menunggu frame terbaru"} badge={<Badge tone={live ? "green" : "neutral"}>{live ? "LIVE" : "MENUNGGU"}</Badge>} />
@@ -52,8 +53,9 @@ export function Monitoring() {
       </Panel>
       <Panel title="Objek terdeteksi" description="Dari frame kamera terbaru">{live && data?.desk_objects.length ? <div className="object-tags">{data.desk_objects.map((object, index) => <span key={`${object}-${index}`}>{object}</span>)}</div> : <p className="muted">Belum ada objek dari frame terbaru.</p>}</Panel>
     </div></div>
+    <LiveTelemetry />
     <div className="dataset-callout"><span className="callout-icon"><ArrowDownToLine size={22} aria-hidden="true" /></span><div><h2>Dari pembacaan menjadi pengetahuan.</h2><p>Kelola riwayat sensor dan siapkan data untuk training di Colab.</p></div><Link className="button secondary" href="/datasets/sensors">Buka dataset sensor <ArrowRight size={16} aria-hidden="true" /></Link></div>
-  </>;
+  </div>;
 }
 function OccupancyChart({ points }: { points: { count: number; at: string }[] }) {
   const max = Math.max(2, ...points.map(point => point.count));

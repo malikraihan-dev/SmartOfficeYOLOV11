@@ -8,28 +8,33 @@ Beranda **http://127.0.0.1:3000/** kini berupa landing page SaaS dengan kartu ka
 
 ## Menjalankan frontend baru
 
+Peta struktur kode tersedia melalui [Graphify khusus proyek](docs/GRAPHIFY.md), termasuk cara query dan memperbarui grafik selama pengembangan.
+
+Rancangan sebelum implementasi: [Google SSO, pendaftaran pengguna, dan persetujuan admin](docs/AUTH_SSO_REGISTRATION.md), mencakup arsitektur, struktur modul/database, kontrak API, dan tahapan migrasi.
+
 Kebutuhan tambahan: Node.js 22.20+ dengan npm. Python tetap memakai dependensi di `requirements.txt`.
 
-Terminal pertama, dari folder `SmartOffice_YOLOv11`:
+Dari folder `SmartOffice_YOLOv11`, siapkan dependensi dan akun admin sekali:
 
 ```powershell
+python -m pip install -r requirements.txt
+npm --prefix apps/web ci
 python manage_admin.py
-python app.py
 ```
 
 `manage_admin.py` dijalankan sekali untuk membuat akun admin (atau kembali untuk mereset kata sandi). Isi nama pengguna dan kata sandi minimal 12 karakter. Tidak ada akun/kata sandi bawaan. Windows juga dapat menggunakan `setup_admin.bat`. Data akun dan sesi disimpan terpisah di `instance/admin_auth.db`, yang diabaikan version control. Detail ada di [docs/AUTH.md](docs/AUTH.md).
 
-Terminal kedua, dari folder yang sama:
+Setelah setup, jalankan frontend dan backend dalam satu terminal dari folder yang sama:
 
 ```powershell
-cd apps/web
-npm ci
 npm run dev
 ```
 
 Buka **http://127.0.0.1:3000/login** dan masuk dengan akun yang dibuat. Flask berjalan di **http://127.0.0.1:5000**. Request `/api/*`, `/video_feed`, `/snapshots/*`, dan `/training_data/*` diteruskan ke Flask oleh Next.js. Sesi memakai cookie HttpOnly, bukan credential di source browser. Salin `apps/web/.env.example` menjadi `.env.local` untuk mengubah `SMARTOFFICE_API_URL`, kemudian mulai ulang Next.js.
 
-Di Windows, `run_frontend.bat` juga dapat digunakan untuk menjalankan frontend (backend dijalankan terpisah).
+`npm run dev` juga dapat dijalankan dari `apps/web`. Launcher menjalankan Flask dan Next.js bersama; Ctrl+C menghentikan kedua layanan beserta proses turunannya. Jika satu layanan gagal, layanan lainnya ikut dihentikan. Hentikan server lama di port 3000/5000 sebelum memakai launcher; proses lain tidak dihentikan otomatis. Dependensi tidak diinstal ulang setiap startup.
+
+Python dipilih dari `SMARTOFFICE_PYTHON` bila diatur, virtual environment aktif, `.venv` proyek, lalu perintah `python`. Contoh interpreter khusus: `$env:SMARTOFFICE_PYTHON = 'C:\path\venv\Scripts\python.exe'`. Launcher selalu mengarahkan frontend ke API lokal port 5000; untuk backend eksternal atau yang sudah berjalan, gunakan frontend saja: `cd apps/web` lalu `npm run dev:web` (atau `npm run dev:web:compat` di Windows). `run_frontend.bat` tetap menjalankan frontend saja.
 
 Pratinjau UI dari backend fixture pengujian, bukan pengukuran perangkat nyata:
 
@@ -37,9 +42,9 @@ Pratinjau UI dari backend fixture pengujian, bukan pengukuran perangkat nyata:
 
 ![Monitoring desktop dengan sensor demo](docs/screenshots/monitoring-1440.png)
 
-Jika Windows menampilkan **Application Control policy has blocked this file** saat memuat compiler SWC, gunakan `npm run dev:compat`. Jalur opsional ini memakai compiler WebAssembly yang disertakan sebagai dependensi. Mode produksi: `npm run build:compat` lalu `npm start` (atau `npm run build` pada mesin yang mendukung compiler native). Override compiler ini memakai API internal Next.js dan perlu diperiksa kembali saat memperbarui Next.js; gunakan `package-lock.json` yang disediakan.
+Di Windows, launcher memakai compiler WebAssembly untuk kompatibilitas Application Control. `npm run dev:compat` memilih jalur itu secara eksplisit di platform lain. Mode produksi dari `apps/web`: `npm run build:compat` lalu `npm start` (atau `npm run build` pada mesin yang mendukung compiler native); backend produksi tetap dikelola terpisah. Override compiler ini memakai API internal Next.js dan perlu diperiksa kembali saat memperbarui Next.js; gunakan `apps/web/package-lock.json` yang disediakan.
 
-Ketika Flask mati, halaman login menjelaskan kegagalan koneksi; sesi harus diverifikasi sebelum dashboard dapat dibuka. Pada sesi aktif, polling menampilkan error jika endpoint data gagal. Buka hanya satu halaman kamera aktif pada instalasi lokal; generator kamera Flask masih mengikuti koneksi MJPEG dan belum dipisah menjadi satu worker bersama. Rincian pengujian dan konfigurasi proxy produksi ada di [apps/web/README.md](apps/web/README.md).
+Ketika Flask mati, halaman login menjelaskan kegagalan koneksi; sesi harus diverifikasi sebelum dashboard dapat dibuka. Pada sesi aktif, polling menampilkan error jika endpoint data gagal. Kamera dan inference dijalankan satu worker bersama per proses backend; beberapa halaman MJPEG membaca frame terbaru yang sama. Jalankan satu proses backend untuk satu kamera fisik. Rincian pengujian dan konfigurasi proxy produksi ada di [apps/web/README.md](apps/web/README.md).
 
 ## Fitur
 
@@ -66,8 +71,8 @@ Ketika Flask mati, halaman login menjelaskan kegagalan koneksi; sesi harus diver
 
 1. Pasang Python dan pastikan perintah `python` serta `pip` tersedia di terminal.
 2. Buka folder proyek ini.
-3. Jalankan `setup_admin.bat` sekali, lalu `run_windows.bat` untuk backend.
-4. Jalankan `run_frontend.bat` pada terminal lain, lalu buka [halaman login](http://127.0.0.1:3000/login).
+3. Siapkan dependensi dan akun seperti bagian di atas, lalu jalankan `npm run dev` untuk kedua layanan.
+4. Buka [halaman login](http://127.0.0.1:3000/login). Jalur terpisah tetap tersedia: `run_windows.bat` untuk backend dan `run_frontend.bat` untuk frontend.
 
 Alternatif melalui PowerShell:
 

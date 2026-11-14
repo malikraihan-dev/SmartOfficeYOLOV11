@@ -19,5 +19,5 @@ if not exist node_modules (
 echo Frontend: http://127.0.0.1:3000
 echo Jalankan python app.py pada terminal lain untuk backend.
 echo Menggunakan compiler WebAssembly untuk kompatibilitas Windows.
-call npm run dev:compat
+call npm run dev:web:compat
 pause

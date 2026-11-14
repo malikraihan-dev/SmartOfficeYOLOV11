@@ -11,7 +11,8 @@ import { number, sensorState } from "@/lib/api";
 
 export function LiveTelemetry() {
   const { data: status, error: statusError, paused } = useOffice();
-  const { data, error, refresh, loading } = usePoll<SensorDataset>("/api/sensors/dataset?limit=12", 10000, paused);
+  const [period, setPeriod] = useState("");
+  const { data, error, refresh, loading } = usePoll<SensorDataset>(`/api/sensors/dataset?limit=${period ? 200 : 12}${period ? `&period=${period}` : ""}`, 10000, paused);
   const [metric, setMetric] = useState<"co2_ppm" | "temperature_c">("co2_ppm");
   const rows = [...(data?.rows ?? [])].reverse();
   const values = rows.map(row => row[metric]);
@@ -20,6 +21,7 @@ export function LiveTelemetry() {
   const time = (value: string | undefined) => value ? new Date(value).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : "--";
   return <section className="live-telemetry" aria-labelledby="live-telemetry-title"><div className="live-telemetry-intro"><span className="saas-kicker"><Activity size={14} aria-hidden="true" />WORKSPACE ANALYTICS</span><h2 id="live-telemetry-title">Setiap pembacaan,<br /><span>lebih bermakna.</span></h2><p>{statusError ? "Koneksi terputus. Data historis tidak menunjukkan kondisi ruang saat ini." : source === "DEMO" ? "Angka terkini masih simulasi. Grafik hanya menampilkan riwayat SCD40 yang benar-benar tersimpan." : "Telusuri kondisi ruang melalui sumber, waktu pembaruan, dan riwayat pembacaan."}</p><Link href="/datasets/sensors">Jelajahi dataset <ArrowRight size={16} aria-hidden="true" /></Link><div className="telemetry-source"><span>Sumber saat ini</span><Badge tone={source === "LIVE" ? "green" : "amber"}>{source}</Badge></div></div>
     <div className="live-chart-card"><div className="live-chart-header"><div><span>RIWAYAT SCD40</span><h3>{metric === "co2_ppm" ? "Karbon dioksida" : "Suhu ruangan"}</h3></div><div className="preview-tabs" aria-label="Metrik grafik sensor"><button aria-pressed={metric === "co2_ppm"} onClick={() => setMetric("co2_ppm")}>CO₂</button><button aria-pressed={metric === "temperature_c"} onClick={() => setMetric("temperature_c")}>Suhu</button></div></div><div className="live-chart-value">{values.length ? number(values.at(-1), metric === "co2_ppm" ? 0 : 1) : "--"}<span>{unit}</span><small>{error ? "Riwayat terakhir · gagal memperbarui" : rows.length ? `${rows.length} pembacaan tersimpan` : loading ? "Memuat riwayat…" : "Belum ada riwayat asli"}</small></div><TrendChart values={values} label={metric === "co2_ppm" ? "Riwayat CO₂" : "Riwayat suhu"} unit={unit} start={time(rows[0]?.timestamp)} end={time(rows.at(-1)?.timestamp)} />
+      <div className="period-filter"><label htmlFor="sensor-period">Periode grafik</label><select id="sensor-period" disabled={paused} value={period} onChange={event => setPeriod(event.target.value)}><option value="">12 terbaru</option><option value="1h">1 jam</option><option value="24h">24 jam</option><option value="7d">7 hari</option></select><small>{period ? "Maksimum 200 pembacaan terbaru dalam periode." : "12 pembacaan terbaru."}{paused ? " Lanjutkan pembaruan untuk mengganti periode." : loading ? " Memuat…" : ""}</small></div>
       <div className="live-chart-footer"><span>{error ? "Periksa koneksi dan coba perbarui." : "Riwayat tersimpan · bukan indikator perangkat online"}</span><button type="button" aria-label="Perbarui grafik sensor" disabled={loading || paused} onClick={refresh}><RefreshCw size={14} aria-hidden="true" /></button></div>
     </div></section>;
 }

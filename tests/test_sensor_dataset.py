@@ -11,6 +11,7 @@ import unittest
 from datetime import datetime, timezone
 from flask import Flask, request, jsonify
 from sensor_dataset import init_sensor_schema, register_sensor_dataset
+from database import Database
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,6 +29,8 @@ class SensorDatasetTests(unittest.TestCase):
         names = {'db_connect', 'db_write', 'init_database', 'receive_scd40'}
         nodes = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in names]
         exec(compile(ast.Module(body=nodes, type_ignores=[]), 'app_routes', 'exec'), self.ns)
+        database = Database(self.ns['DATABASE_PATH'])
+        self.ns.update(db_connect=database.connect, db_write=database.write, db_read=database.read, init_database=database.initialize)
         self.ns['init_database']()
         register_sensor_dataset(app, self.ns['db_connect'])
         self.client = app.test_client()
@@ -50,6 +53,30 @@ class SensorDatasetTests(unittest.TestCase):
         self.assertIsNotNone(datetime.fromisoformat(rows[0]['timestamp']).tzinfo)
         self.assertLess(rows[0]['timestamp'], rows[1]['timestamp'])
 
+    def test_date_filter_summary_and_export_use_same_exclusive_end(self):
+        db = self.ns['db_connect']()
+        for at in ['2026-11-08T17:00:00+00:00', '2026-11-09T16:59:59+00:00', '2026-11-09T17:00:00+00:00']:
+            db.execute('INSERT INTO sensor_readings(timestamp,co2_ppm,temperature_c,humidity_percent) VALUES(?,720,25,50)', (at,))
+        db.commit()
+        db.close()
+        query = {'from': '2026-11-09T00:00:00+07:00', 'to': '2026-11-10T00:00:00+07:00'}
+        summary = self.client.get('/api/sensors/dataset', query_string=query).get_json()
+        exported = self.client.get('/api/sensors/export', query_string=query)
+        rows = list(csv.DictReader(io.StringIO(exported.get_data(as_text=True))))
+        self.assertEqual(summary['total_rows'], 2)
+        self.assertEqual({row['timestamp'] for row in rows}, {row['timestamp'] for row in summary['rows']})
+        for query in [{'period': 'invalid'}, {'from': '2026-11-09'}, {'from': 'bad'}, {'from': '2026-11-10T00:00:00Z', 'to': '2026-11-09T00:00:00Z'}]:
+            for path in ['/api/sensors/dataset', '/api/sensors/export']:
+                self.assertEqual(self.client.get(path, query_string=query).status_code, 400)
+
+    def test_period_excludes_old_readings(self):
+        self.post_sample()
+        db = self.ns['db_connect']()
+        db.execute("INSERT INTO sensor_readings(timestamp,co2_ppm,temperature_c,humidity_percent) VALUES('2020-01-01T00:00:00Z',720,25,50)")
+        db.commit()
+        db.close()
+        self.assertEqual(self.client.get('/api/sensors/dataset?period=1h').get_json()['total_rows'], 1)
+
     def test_invalid_or_synthetic_input_is_not_logged(self):
         bad = [None, [], [1], 'invalid', 42, {'co2_ppm': 0, 'temperature_c': 25, 'humidity_percent': 50},
                {'co2_ppm': float('nan'), 'temperature_c': 25, 'humidity_percent': 50},
@@ -60,6 +87,8 @@ class SensorDatasetTests(unittest.TestCase):
         self.assertEqual(self.client.get('/api/sensors/dataset').get_json()['total_rows'], 0)
 
     def test_empty_limit_and_idempotent_schema(self):
+        database = Database(self.ns['DATABASE_PATH'])
+        self.ns.update(db_connect=database.connect, db_write=database.write, db_read=database.read, init_database=database.initialize)
         self.ns['init_database']()
         self.assertEqual(self.client.get('/api/sensors/dataset').get_json()['rows'], [])
         self.assertEqual(self.client.get('/api/sensors/dataset').headers['Cache-Control'], 'no-store')
