@@ -1,7 +1,6 @@
 import os
 import time
 import threading
-import sqlite3
 import json
 import glob
 import csv
@@ -10,7 +9,11 @@ import uuid
 import zipfile
 from collections import deque, Counter
 from datetime import datetime, timezone
-from sensor_dataset import init_sensor_schema, register_sensor_dataset
+from sensor_dataset import register_sensor_dataset
+from database import Database
+from settings_store import SettingsStore, validate_detection, validate_audio
+from camera_worker import CameraWorker
+import atexit
 from admin_auth import register_admin_auth
 
 import cv2
@@ -42,15 +45,22 @@ if os.path.isfile(FACE_MODEL_PATH) and hasattr(cv2, "FaceDetectorYN_create"):
         FACE_DETECTOR = cv2.FaceDetectorYN_create(FACE_MODEL_PATH, "", (320, 320), 0.45, 0.3, 5000)
     except cv2.error:
         FACE_DETECTOR = None
-SNAPSHOT_DIR = os.path.join(app.root_path, "snapshots")
-DATASET_DIR = os.path.join(app.root_path, "training_data")
-RAW_DATASET_DIR = os.path.join(app.root_path, "dataset_images")
-DATABASE_PATH = os.path.join(app.root_path, "smartoffice.db")
+DATA_ROOT = os.environ.get("SMARTOFFICE_DATA_DIR", app.root_path)
+SNAPSHOT_DIR = os.path.join(DATA_ROOT, "snapshots")
+DATASET_DIR = os.path.join(DATA_ROOT, "training_data")
+RAW_DATASET_DIR = os.path.join(DATA_ROOT, "dataset_images")
+DATABASE_PATH = os.environ.get("SMARTOFFICE_DATABASE", os.path.join(app.root_path, "smartoffice.db"))
 BRIGHTNESS_THRESHOLD = 10.0
 DETECTION_CONFIDENCE = 0.35
 ZONE_CONFIG = {"x1": 0.12, "y1": 0.15, "x2": 0.88, "y2": 0.92}
 AUDIO_SAMPLE_RATE = 8000
 AUDIO_THRESHOLD_DBFS = -42.0
+settings_store = SettingsStore(DATABASE_PATH)
+saved_detection = settings_store.load("detection", {"confidence": DETECTION_CONFIDENCE, "zone": ZONE_CONFIG})
+DETECTION_CONFIDENCE = saved_detection["confidence"]
+ZONE_CONFIG = saved_detection["zone"]
+AUDIO_THRESHOLD_DBFS = settings_store.load("audio", {"threshold_dbfs": AUDIO_THRESHOLD_DBFS})["threshold_dbfs"]
+settings_lock = threading.Lock()
 AUDIO_CALIBRATION_SEGMENTS = 2
 audio_calibrate_event = threading.Event()
 os.makedirs(SNAPSHOT_DIR, exist_ok=True)
@@ -93,103 +103,11 @@ system_state = {
 }
 
 
-def db_connect():
-    connection = sqlite3.connect(DATABASE_PATH, timeout=10)
-    connection.row_factory = sqlite3.Row
-    return connection
-
-
-def init_database():
-    db = db_connect()
-    try:
-        db.execute("PRAGMA journal_mode=WAL")
-        init_sensor_schema(db)
-        db.execute("""CREATE TABLE IF NOT EXISTS evaluation_samples (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            captured_at TEXT NOT NULL,
-            predicted_count INTEGER NOT NULL,
-            confidence REAL NOT NULL,
-            activity TEXT NOT NULL,
-            objects_json TEXT NOT NULL,
-            image_file TEXT NOT NULL,
-            actual_count INTEGER,
-            reviewed_at TEXT
-        )""")
-        db.execute("CREATE INDEX IF NOT EXISTS idx_evaluation_pending ON evaluation_samples(actual_count, id DESC)")
-        db.execute("""CREATE TABLE IF NOT EXISTS occupancy_samples (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            sampled_at TEXT NOT NULL,
-            session_id TEXT NOT NULL,
-            person_count INTEGER NOT NULL,
-            mean_confidence REAL NOT NULL,
-            activity TEXT NOT NULL,
-            camera_fps REAL DEFAULT 0,
-            inference_ms REAL DEFAULT 0
-        )""")
-        db.execute("""CREATE TABLE IF NOT EXISTS tracking_points (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            sampled_at TEXT NOT NULL,
-            session_id TEXT NOT NULL,
-            track_id INTEGER NOT NULL,
-            x_norm REAL NOT NULL,
-            y_norm REAL NOT NULL,
-            confidence REAL NOT NULL,
-            UNIQUE(sampled_at, session_id, track_id)
-        )""")
-        db.execute("CREATE INDEX IF NOT EXISTS idx_tracking_session ON tracking_points(session_id, sampled_at)")
-        db.execute("""CREATE TABLE IF NOT EXISTS quality_events (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            observed_at TEXT NOT NULL,
-            event_type TEXT NOT NULL,
-            brightness REAL NOT NULL
-        )""")
-        db.execute("""CREATE TABLE IF NOT EXISTS audio_samples (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            sampled_at TEXT NOT NULL,
-            level_dbfs REAL NOT NULL,
-            zero_crossing_rate REAL NOT NULL,
-            predicted_label TEXT NOT NULL,
-            threshold_dbfs REAL NOT NULL,
-            processed_features TEXT NOT NULL,
-            actual_label TEXT,
-            reviewed_at TEXT
-        )""")
-        db.execute("CREATE INDEX IF NOT EXISTS idx_audio_review ON audio_samples(actual_label, id DESC)")
-        db.execute("""CREATE TABLE IF NOT EXISTS zone_visits (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            session_id TEXT NOT NULL,
-            track_id INTEGER NOT NULL,
-            entered_at TEXT NOT NULL,
-            exited_at TEXT,
-            duration_sec REAL
-        )""")
-        occupancy_cols = {row[1] for row in db.execute("PRAGMA table_info(occupancy_samples)").fetchall()}
-        if "camera_fps" not in occupancy_cols:
-            db.execute("ALTER TABLE occupancy_samples ADD COLUMN camera_fps REAL DEFAULT 0")
-        if "inference_ms" not in occupancy_cols:
-            db.execute("ALTER TABLE occupancy_samples ADD COLUMN inference_ms REAL DEFAULT 0")
-        db.commit()
-    finally:
-        db.close()
-
-
-def db_read(query, params=()):
-    db = db_connect()
-    try:
-        return db.execute(query, params).fetchall()
-    finally:
-        db.close()
-
-
-def db_write(query, params=()):
-    db = db_connect()
-    try:
-        cursor = db.execute(query, params)
-        db.commit()
-        return cursor.lastrowid
-    finally:
-        db.close()
-
+database = Database(DATABASE_PATH)
+db_connect = database.connect
+init_database = database.initialize
+db_read = database.read
+db_write = database.write
 
 init_database()
 register_sensor_dataset(app, db_connect)
@@ -278,7 +196,7 @@ def audio_listener_thread():
         with sd.InputStream(channels=1, samplerate=AUDIO_SAMPLE_RATE, blocksize=AUDIO_SAMPLE_RATE, dtype="float32") as stream:
             with state_lock:
                 system_state["audio_status"] = "Mikrofon aktif"
-            calibration_levels = []
+            calibration_levels = [AUDIO_THRESHOLD_DBFS - 8] * AUDIO_CALIBRATION_SEGMENTS if settings_store.contains("audio") else []
             current_label = "quiet"
             candidate_label = None
             candidate_repeats = 0
@@ -314,7 +232,10 @@ def audio_listener_thread():
                         system_state["audio_status"] = f"Kalibrasi audio ({len(calibration_levels)}/{AUDIO_CALIBRATION_SEGMENTS})"
                     if len(calibration_levels) == AUDIO_CALIBRATION_SEGMENTS:
                         baseline = float(np.median(calibration_levels))
-                        AUDIO_THRESHOLD_DBFS = float(np.clip(baseline + 8.0, -55.0, -25.0))
+                        with settings_lock:
+                            calibrated = float(np.clip(baseline + 8.0, -55.0, -25.0))
+                            settings_store.save("audio", {"threshold_dbfs": calibrated})
+                            AUDIO_THRESHOLD_DBFS = calibrated
                         with state_lock:
                             system_state.update({
                                 "audio_baseline_dbfs": round(baseline, 1),
@@ -501,257 +422,265 @@ def generate_video_frames():
             visit_id, entered_epoch = visit
             close_zone_visit(visit_id, entered_epoch, datetime.now().astimezone().isoformat(timespec="seconds"))
 
-    while True:
-        now = time.time()
-        with state_lock:
-            force_retry = camera_retry_requested
-            camera_retry_requested = False
-        if force_retry:
-            retry_at = 0.0
-            for tracked_id in list(zone_visits):
-                finish_zone_visit(tracked_id)
-            active_tracks.clear()
-            session_id = uuid.uuid4().hex[:12]
-            if cap is not None:
-                cap.release()
-            cap = None
-        ok, frame = (False, None)
-        if cap is not None and cap.isOpened():
-            ok, frame = cap.read()
-
-        # Try common Windows webcam indices and backends; retry every 3 seconds if unavailable.
-        if not ok and now >= retry_at:
-            if cap is not None:
-                cap.release()
-            cap = None
-            for index in range(4):
-                for backend in (cv2.CAP_DSHOW, cv2.CAP_MSMF, cv2.CAP_ANY):
-                    candidate = cv2.VideoCapture(index, backend)
-                    if candidate.isOpened():
-                        candidate.set(cv2.CAP_PROP_FRAME_WIDTH, 480)
-                        candidate.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
-                        candidate.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-                        read_ok, first_frame = candidate.read()
-                        if read_ok:
-                            cap, camera_index, ok, frame = candidate, index, True, first_frame
-                            break
-                    candidate.release()
-                if ok:
-                    break
-            retry_at = now + 3
-
-        if not ok:
-            was_demo = True
-            for tracked_id in list(zone_visits):
-                finish_zone_visit(tracked_id)
-            frame = demo_frame()
+    try:
+        while True:
+            now = time.time()
             with state_lock:
-                latest_frame = frame.copy()
-                system_state.update({
-                    "person_detected": False, "person_count": 0, "person_confidence": 0.0,
-                    "visual_activity": "Kamera belum tersedia", "desk_objects": [],
-                    "final_validation": "Mode demo: menunggu kamera laptop",
-                    "camera_status": "Mencari kamera laptop", "camera_index": None,
-                    "last_frame_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-                    "zone_duration_sec": 0.0,
-                })
-            ok, buffer = cv2.imencode(".jpg", frame)
-            if ok:
-                try:
-                    yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n"
-                except GeneratorExit:
-                    if cap is not None:
-                        cap.release()
-                    raise
-            time.sleep(.2)
-            continue
-
-        if was_demo:
-            last_detection = False
-            was_demo = False
-            session_id = uuid.uuid4().hex[:12]
-            active_tracks.clear()
-            previous_centers = []
-            last_perf_at = time.perf_counter()
-        with state_lock:
-            system_state.update({"camera_status": "Kamera terhubung", "camera_index": camera_index})
-        if frame.shape[1] > 480:
-            ratio = 480.0 / frame.shape[1]
-            frame = cv2.resize(frame, (480, int(frame.shape[0] * ratio)), interpolation=cv2.INTER_AREA)
-        h, w = frame.shape[:2]
-        with state_lock:
-            latest_clean_frame = frame.copy()
-        small_gray = cv2.cvtColor(cv2.resize(frame, (32, 32), interpolation=cv2.INTER_AREA), cv2.COLOR_BGR2GRAY)
-        brightness = float(np.mean(small_gray))
-        if brightness < BRIGHTNESS_THRESHOLD:
-            if not was_dark or now - last_dark_event_at >= 30:
-                save_quality_event("dark_frame", brightness)
-                last_dark_event_at = now
-            was_dark = True
-            for tracked_id in list(zone_visits):
-                finish_zone_visit(tracked_id)
-            active_tracks.clear()
-            count_history.clear()
-            activity_history.clear()
-            dark_elapsed = max(1e-6, time.perf_counter() - last_perf_at)
-            camera_fps = 1.0 / dark_elapsed
-            last_perf_at = time.perf_counter()
-            cv2.putText(frame, f"FRAME GELAP - DETEKSI DILEWATI ({brightness:.1f}/255)", (12, 28), cv2.FONT_HERSHEY_SIMPLEX, .58, (100, 220, 255), 2)
-            with state_lock:
-                system_state.update({
-                    "person_detected": False, "person_count": 0, "person_confidence": 0.0,
-                    "visual_activity": "Frame gelap; deteksi dilewati", "desk_objects": [],
-                    "final_validation": "Frame terlalu gelap untuk deteksi yang andal",
-                    "dark_frame": True, "frame_brightness": round(brightness, 2),
-                    "camera_status": "Kamera terhubung · frame gelap", "camera_index": camera_index,
-                    "last_frame_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-                    "camera_fps": round(camera_fps, 1), "inference_ms": 0.0,
-                    "zone_duration_sec": 0.0,
-                })
-                latest_frame = frame.copy()
-            ok, buffer = cv2.imencode(".jpg", frame)
-            if ok:
-                try:
-                    yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n"
-                except GeneratorExit:
-                    if cap is not None:
-                        cap.release()
-                    raise
-            time.sleep(.1)
-            continue
-        if was_dark:
-            save_quality_event("dark_frame_ended", brightness)
-            was_dark = False
-        with state_lock:
-            zone = ZONE_CONFIG.copy()
-        roi = (int(w * zone["x1"]), int(h * zone["y1"]), int(w * zone["x2"]), int(h * zone["y2"]))
-        people, confidences, centers, desk_items, object_boxes = [], [], [], [], []
-        inference_start = time.perf_counter()
-        result = model.predict(source=frame, imgsz=320, conf=DETECTION_CONFIDENCE, max_det=12, verbose=False)[0]
-        inference_ms = (time.perf_counter() - inference_start) * 1000
-        for box in result.boxes:
-            cls_id, conf = int(box.cls[0]), float(box.conf[0])
-            label = str(model.names[cls_id]).lower()
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
-            x1, y1, x2, y2 = max(0, x1), max(0, y1), min(w, x2), min(h, y2)
-            if label in PERSON_CLASS_ALIASES:
-                people.append((x1, y1, x2, y2))
-                confidences.append(conf)
-                center = ((x1 + x2) // 2, (y1 + y2) // 2)
-                centers.append(center)
-            elif label in ALLOWED_DESK_CLASSES:
-                mapped = ALLOWED_DESK_CLASSES[label]
-                desk_items.append(f"{mapped} ({conf * 100:.0f}%)")
-                object_boxes.append((x1, y1, x2, y2, mapped, conf))
-
-        track_ids, next_track_id = assign_track_ids(centers, active_tracks, next_track_id)
-        tracked_points = [
-            (track_id, center[0] / w, center[1] / h, confidences[index])
-            for index, (track_id, center) in enumerate(zip(track_ids, centers))
-        ]
-
-        # Blur only the segmented silhouette; render labels after blur for readability.
-        original = frame.copy()
-        detected_faces = detect_face_boxes(original)
-        person_masks = [blur_face_oval(frame, box, original, detected_faces) for box in people]
-        for x1, y1, x2, y2, name, conf in object_boxes:
-            color = (60, 210, 115)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-            text = f"{name} {conf * 100:.0f}%"
-            (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, .46, 1)
-            top = max(0, y1 - th - 9)
-            cv2.rectangle(frame, (x1, top), (min(w - 1, x1 + tw + 8), y1), color, -1)
-            cv2.putText(frame, text, (x1 + 4, max(th, y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, .46, (18, 35, 31), 1, cv2.LINE_AA)
-        for index, ((x1, y1, x2, y2), conf, mask) in enumerate(zip(people, confidences, person_masks)):
-            if mask is not None and mask.size:
-                contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                if contours:
-                    cv2.drawContours(frame[y1:y2, x1:x2], contours, -1, (255, 190, 75), 1, cv2.LINE_AA)
-            track_id = track_ids[index] if index < len(track_ids) else index + 1
-            cv2.putText(frame, f"Orang #{track_id} {conf * 100:.0f}%", (x1, max(16, y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 210, 115), 1, cv2.LINE_AA)
-
-        raw_count = len(people)
-        count_history.append(raw_count)
-        count = int(np.median(count_history))
-        confidence = float(np.mean(confidences)) if confidences else 0.0
-        moving = False
-        if centers and previous_centers:
-            moving = any(min(np.hypot(x - px, y - py) for px, py in previous_centers) >= 4 for x, y in centers)
-        if moving or (centers and not previous_centers):
-            last_motion = now
-        previous_centers = centers
-        inside = any(roi[0] <= x <= roi[2] and roi[1] <= y <= roi[3] for x, y in centers)
-        current_ids = set()
-        for track_id, (cx, cy) in zip(track_ids, centers):
-            if roi[0] <= cx <= roi[2] and roi[1] <= cy <= roi[3]:
-                current_ids.add(track_id)
-                if track_id not in zone_visits:
-                    entered_at = datetime.now().astimezone().isoformat(timespec="seconds")
-                    zone_visits[track_id] = (open_zone_visit(session_id, track_id, entered_at), time.time())
-            elif track_id in zone_visits:
-                finish_zone_visit(track_id)
-        for track_id in list(zone_visits):
-            if track_id not in active_tracks:
-                finish_zone_visit(track_id)
-        zone_duration = round(sum(max(0, time.time() - entered) for _, entered in zone_visits.values()), 1)
-        if not centers:
-            activity = "Tidak ada orang"
-        elif not inside:
-            activity = "Di luar zona kerja"
-        elif now - last_motion <= 5:
-            activity = "Sedang bergerak / aktif"
-        else:
-            activity = "Diam / tidak banyak bergerak"
-        activity_history.append(activity)
-        activity = Counter(activity_history).most_common(1)[0][0]
-
-        roi_color = (0, 255, 0) if inside else (0, 200, 255)
-        x1, y1, x2, y2 = roi
-        length = max(16, min(w, h) // 18)
-        for x, y, sx, sy in ((x1,y1,1,1),(x2,y1,-1,1),(x1,y2,1,-1),(x2,y2,-1,-1)):
-            cv2.line(frame, (x,y), (x+sx*length,y), roi_color, 2)
-            cv2.line(frame, (x,y), (x,y+sy*length), roi_color, 2)
-        cv2.putText(frame, "ZONA KERJA", (x1 + 5, max(16, y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, .42, roi_color, 1, cv2.LINE_AA)
-        cv2.putText(frame, f"Orang: {count} | Confidence rata-rata: {confidence * 100:.1f}%", (12, 28), cv2.FONT_HERSHEY_SIMPLEX, .62, (255, 255, 255), 2)
-        cv2.putText(frame, f"Kamera laptop #{camera_index} | {activity}", (12, 54), cv2.FONT_HERSHEY_SIMPLEX, .55, (255, 255, 255), 2)
-        elapsed = max(1e-6, time.perf_counter() - last_perf_at)
-        camera_fps = 1.0 / elapsed
-        last_perf_at = time.perf_counter()
-        with state_lock:
-            latest_frame = frame.copy()
-            system_state.update({
-                "person_detected": count > 0, "person_count": count,
-                "person_confidence": round(confidence * 100, 1), "visual_activity": activity,
-                "desk_objects": desk_items,
-                "final_validation": "Orang terdeteksi" if count else "Tidak ada orang terdeteksi",
-                "camera_status": "Kamera terhubung", "camera_index": camera_index,
-                "last_frame_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-                "dark_frame": False, "frame_brightness": round(brightness, 2),
-                "camera_fps": round(camera_fps, 1), "inference_ms": round(inference_ms, 1),
-                "zone_duration_sec": zone_duration,
-            })
-        if count and not last_detection and now - last_auto_snapshot_at >= 30:
-            save_snapshot(frame.copy(), count, confidence, "deteksi baru")
-            last_auto_snapshot_at = now
-        last_detection = count > 0
-        if now - last_sample_at >= 30:
-            save_evaluation_sample(frame.copy(), count, confidence, activity, desk_items)
-            last_sample_at = now
-        if now - last_spatiotemporal_at >= 1:
-            sampled_at = datetime.now().astimezone().isoformat(timespec="seconds")
-            save_spatiotemporal_data(session_id, sampled_at, count, confidence, activity,
-                                     tracked_points, camera_fps, inference_ms)
-            last_spatiotemporal_at = now
-        ok, buffer = cv2.imencode(".jpg", frame)
-        if ok:
-            try:
-                yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n"
-            except GeneratorExit:
+                force_retry = camera_retry_requested
+                camera_retry_requested = False
+            if force_retry:
+                retry_at = 0.0
+                for tracked_id in list(zone_visits):
+                    finish_zone_visit(tracked_id)
+                active_tracks.clear()
+                session_id = uuid.uuid4().hex[:12]
                 if cap is not None:
                     cap.release()
-                raise
-    if cap is not None:
-        cap.release()
+                cap = None
+            ok, frame = (False, None)
+            if cap is not None and cap.isOpened():
+                ok, frame = cap.read()
+
+            # Try common Windows webcam indices and backends; retry every 3 seconds if unavailable.
+            if not ok and now >= retry_at:
+                if cap is not None:
+                    cap.release()
+                cap = None
+                for index in range(4):
+                    for backend in (cv2.CAP_DSHOW, cv2.CAP_MSMF, cv2.CAP_ANY):
+                        candidate = cv2.VideoCapture(index, backend)
+                        if candidate.isOpened():
+                            candidate.set(cv2.CAP_PROP_FRAME_WIDTH, 480)
+                            candidate.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
+                            candidate.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                            read_ok, first_frame = candidate.read()
+                            if read_ok:
+                                cap, camera_index, ok, frame = candidate, index, True, first_frame
+                                break
+                        candidate.release()
+                    if ok:
+                        break
+                retry_at = now + 3
+
+            if not ok:
+                was_demo = True
+                for tracked_id in list(zone_visits):
+                    finish_zone_visit(tracked_id)
+                frame = demo_frame()
+                with state_lock:
+                    latest_frame = frame.copy()
+                    system_state.update({
+                        "person_detected": False, "person_count": 0, "person_confidence": 0.0,
+                        "visual_activity": "Kamera belum tersedia", "desk_objects": [],
+                        "final_validation": "Mode demo: menunggu kamera laptop",
+                        "camera_status": "Mencari kamera laptop", "camera_index": None,
+                        "last_frame_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+                        "zone_duration_sec": 0.0,
+                    })
+                ok, buffer = cv2.imencode(".jpg", frame)
+                if ok:
+                    try:
+                        yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n"
+                    except GeneratorExit:
+                        if cap is not None:
+                            cap.release()
+                        raise
+                time.sleep(.2)
+                continue
+
+            if was_demo:
+                last_detection = False
+                was_demo = False
+                session_id = uuid.uuid4().hex[:12]
+                active_tracks.clear()
+                previous_centers = []
+                last_perf_at = time.perf_counter()
+            with state_lock:
+                system_state.update({"camera_status": "Kamera terhubung", "camera_index": camera_index})
+            if frame.shape[1] > 480:
+                ratio = 480.0 / frame.shape[1]
+                frame = cv2.resize(frame, (480, int(frame.shape[0] * ratio)), interpolation=cv2.INTER_AREA)
+            h, w = frame.shape[:2]
+            with state_lock:
+                latest_clean_frame = frame.copy()
+            small_gray = cv2.cvtColor(cv2.resize(frame, (32, 32), interpolation=cv2.INTER_AREA), cv2.COLOR_BGR2GRAY)
+            brightness = float(np.mean(small_gray))
+            if brightness < BRIGHTNESS_THRESHOLD:
+                if not was_dark or now - last_dark_event_at >= 30:
+                    save_quality_event("dark_frame", brightness)
+                    last_dark_event_at = now
+                was_dark = True
+                for tracked_id in list(zone_visits):
+                    finish_zone_visit(tracked_id)
+                active_tracks.clear()
+                count_history.clear()
+                activity_history.clear()
+                dark_elapsed = max(1e-6, time.perf_counter() - last_perf_at)
+                camera_fps = 1.0 / dark_elapsed
+                last_perf_at = time.perf_counter()
+                cv2.putText(frame, f"FRAME GELAP - DETEKSI DILEWATI ({brightness:.1f}/255)", (12, 28), cv2.FONT_HERSHEY_SIMPLEX, .58, (100, 220, 255), 2)
+                with state_lock:
+                    system_state.update({
+                        "person_detected": False, "person_count": 0, "person_confidence": 0.0,
+                        "visual_activity": "Frame gelap; deteksi dilewati", "desk_objects": [],
+                        "final_validation": "Frame terlalu gelap untuk deteksi yang andal",
+                        "dark_frame": True, "frame_brightness": round(brightness, 2),
+                        "camera_status": "Kamera terhubung · frame gelap", "camera_index": camera_index,
+                        "last_frame_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+                        "camera_fps": round(camera_fps, 1), "inference_ms": 0.0,
+                        "zone_duration_sec": 0.0,
+                    })
+                    latest_frame = frame.copy()
+                ok, buffer = cv2.imencode(".jpg", frame)
+                if ok:
+                    try:
+                        yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n"
+                    except GeneratorExit:
+                        if cap is not None:
+                            cap.release()
+                        raise
+                time.sleep(.1)
+                continue
+            if was_dark:
+                save_quality_event("dark_frame_ended", brightness)
+                was_dark = False
+            with state_lock:
+                zone = ZONE_CONFIG.copy()
+            roi = (int(w * zone["x1"]), int(h * zone["y1"]), int(w * zone["x2"]), int(h * zone["y2"]))
+            people, confidences, centers, desk_items, object_boxes = [], [], [], [], []
+            inference_start = time.perf_counter()
+            result = model.predict(source=frame, imgsz=320, conf=DETECTION_CONFIDENCE, max_det=12, verbose=False)[0]
+            inference_ms = (time.perf_counter() - inference_start) * 1000
+            for box in result.boxes:
+                cls_id, conf = int(box.cls[0]), float(box.conf[0])
+                label = str(model.names[cls_id]).lower()
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
+                x1, y1, x2, y2 = max(0, x1), max(0, y1), min(w, x2), min(h, y2)
+                if label in PERSON_CLASS_ALIASES:
+                    people.append((x1, y1, x2, y2))
+                    confidences.append(conf)
+                    center = ((x1 + x2) // 2, (y1 + y2) // 2)
+                    centers.append(center)
+                elif label in ALLOWED_DESK_CLASSES:
+                    mapped = ALLOWED_DESK_CLASSES[label]
+                    desk_items.append(f"{mapped} ({conf * 100:.0f}%)")
+                    object_boxes.append((x1, y1, x2, y2, mapped, conf))
+
+            track_ids, next_track_id = assign_track_ids(centers, active_tracks, next_track_id)
+            tracked_points = [
+                (track_id, center[0] / w, center[1] / h, confidences[index])
+                for index, (track_id, center) in enumerate(zip(track_ids, centers))
+            ]
+
+            # Blur only the segmented silhouette; render labels after blur for readability.
+            original = frame.copy()
+            detected_faces = detect_face_boxes(original)
+            person_masks = [blur_face_oval(frame, box, original, detected_faces) for box in people]
+            for x1, y1, x2, y2, name, conf in object_boxes:
+                color = (60, 210, 115)
+                cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+                text = f"{name} {conf * 100:.0f}%"
+                (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, .46, 1)
+                top = max(0, y1 - th - 9)
+                cv2.rectangle(frame, (x1, top), (min(w - 1, x1 + tw + 8), y1), color, -1)
+                cv2.putText(frame, text, (x1 + 4, max(th, y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, .46, (18, 35, 31), 1, cv2.LINE_AA)
+            for index, ((x1, y1, x2, y2), conf, mask) in enumerate(zip(people, confidences, person_masks)):
+                if mask is not None and mask.size:
+                    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                    if contours:
+                        cv2.drawContours(frame[y1:y2, x1:x2], contours, -1, (255, 190, 75), 1, cv2.LINE_AA)
+                track_id = track_ids[index] if index < len(track_ids) else index + 1
+                cv2.putText(frame, f"Orang #{track_id} {conf * 100:.0f}%", (x1, max(16, y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, .45, (255, 210, 115), 1, cv2.LINE_AA)
+
+            raw_count = len(people)
+            count_history.append(raw_count)
+            count = int(np.median(count_history))
+            confidence = float(np.mean(confidences)) if confidences else 0.0
+            moving = False
+            if centers and previous_centers:
+                moving = any(min(np.hypot(x - px, y - py) for px, py in previous_centers) >= 4 for x, y in centers)
+            if moving or (centers and not previous_centers):
+                last_motion = now
+            previous_centers = centers
+            inside = any(roi[0] <= x <= roi[2] and roi[1] <= y <= roi[3] for x, y in centers)
+            current_ids = set()
+            for track_id, (cx, cy) in zip(track_ids, centers):
+                if roi[0] <= cx <= roi[2] and roi[1] <= cy <= roi[3]:
+                    current_ids.add(track_id)
+                    if track_id not in zone_visits:
+                        entered_at = datetime.now().astimezone().isoformat(timespec="seconds")
+                        zone_visits[track_id] = (open_zone_visit(session_id, track_id, entered_at), time.time())
+                elif track_id in zone_visits:
+                    finish_zone_visit(track_id)
+            for track_id in list(zone_visits):
+                if track_id not in active_tracks:
+                    finish_zone_visit(track_id)
+            zone_duration = round(sum(max(0, time.time() - entered) for _, entered in zone_visits.values()), 1)
+            if not centers:
+                activity = "Tidak ada orang"
+            elif not inside:
+                activity = "Di luar zona kerja"
+            elif now - last_motion <= 5:
+                activity = "Sedang bergerak / aktif"
+            else:
+                activity = "Diam / tidak banyak bergerak"
+            activity_history.append(activity)
+            activity = Counter(activity_history).most_common(1)[0][0]
+
+            roi_color = (0, 255, 0) if inside else (0, 200, 255)
+            x1, y1, x2, y2 = roi
+            length = max(16, min(w, h) // 18)
+            for x, y, sx, sy in ((x1,y1,1,1),(x2,y1,-1,1),(x1,y2,1,-1),(x2,y2,-1,-1)):
+                cv2.line(frame, (x,y), (x+sx*length,y), roi_color, 2)
+                cv2.line(frame, (x,y), (x,y+sy*length), roi_color, 2)
+            cv2.putText(frame, "ZONA KERJA", (x1 + 5, max(16, y1 - 5)), cv2.FONT_HERSHEY_SIMPLEX, .42, roi_color, 1, cv2.LINE_AA)
+            cv2.putText(frame, f"Orang: {count} | Confidence rata-rata: {confidence * 100:.1f}%", (12, 28), cv2.FONT_HERSHEY_SIMPLEX, .62, (255, 255, 255), 2)
+            cv2.putText(frame, f"Kamera laptop #{camera_index} | {activity}", (12, 54), cv2.FONT_HERSHEY_SIMPLEX, .55, (255, 255, 255), 2)
+            elapsed = max(1e-6, time.perf_counter() - last_perf_at)
+            camera_fps = 1.0 / elapsed
+            last_perf_at = time.perf_counter()
+            with state_lock:
+                latest_frame = frame.copy()
+                system_state.update({
+                    "person_detected": count > 0, "person_count": count,
+                    "person_confidence": round(confidence * 100, 1), "visual_activity": activity,
+                    "desk_objects": desk_items,
+                    "final_validation": "Orang terdeteksi" if count else "Tidak ada orang terdeteksi",
+                    "camera_status": "Kamera terhubung", "camera_index": camera_index,
+                    "last_frame_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+                    "dark_frame": False, "frame_brightness": round(brightness, 2),
+                    "camera_fps": round(camera_fps, 1), "inference_ms": round(inference_ms, 1),
+                    "zone_duration_sec": zone_duration,
+                })
+            if count and not last_detection and now - last_auto_snapshot_at >= 30:
+                save_snapshot(frame.copy(), count, confidence, "deteksi baru")
+                last_auto_snapshot_at = now
+            last_detection = count > 0
+            if now - last_sample_at >= 30:
+                save_evaluation_sample(frame.copy(), count, confidence, activity, desk_items)
+                last_sample_at = now
+            if now - last_spatiotemporal_at >= 1:
+                sampled_at = datetime.now().astimezone().isoformat(timespec="seconds")
+                save_spatiotemporal_data(session_id, sampled_at, count, confidence, activity,
+                                         tracked_points, camera_fps, inference_ms)
+                last_spatiotemporal_at = now
+            ok, buffer = cv2.imencode(".jpg", frame)
+            if ok:
+                try:
+                    yield b"--frame\r\nContent-Type: image/jpeg\r\n\r\n" + buffer.tobytes() + b"\r\n"
+                except GeneratorExit:
+                    if cap is not None:
+                        cap.release()
+                    raise
+    finally:
+        if cap is not None:
+            cap.release()
+        for tracked_id in list(zone_visits):
+            finish_zone_visit(tracked_id)
+
+
+camera_worker = CameraWorker(generate_video_frames)
+atexit.register(camera_worker.stop)
 
 
 @app.route("/")
@@ -762,7 +691,7 @@ def index():
 
 @app.route("/video_feed")
 def video_feed():
-    return Response(stream_with_context(generate_video_frames()), mimetype="multipart/x-mixed-replace; boundary=frame")
+    return Response(stream_with_context(camera_worker.subscribe()), mimetype="multipart/x-mixed-replace; boundary=frame")
 
 
 @app.route("/api/status")
@@ -808,21 +737,22 @@ def reconnect_camera():
 @app.route("/api/detection/settings", methods=["POST"])
 def set_detection_settings():
     global DETECTION_CONFIDENCE
-    data = request.get_json(silent=True) or {}
     try:
-        confidence = float(data["confidence"])
-        zone = {key: float(data["zone"][key]) for key in ("x1", "y1", "x2", "y2")}
-        if not 0.1 <= confidence <= 0.9 or any(not 0 <= value <= 1 for value in zone.values()):
-            raise ValueError
-        if zone["x2"] - zone["x1"] < 0.1 or zone["y2"] - zone["y1"] < 0.1:
-            raise ValueError
-    except (KeyError, TypeError, ValueError):
-        return jsonify({"status": "error", "message": "Confidence harus 10–90% dan zona valid dengan lebar/tinggi minimal 10%."}), 400
-    DETECTION_CONFIDENCE = confidence
-    with state_lock:
-        ZONE_CONFIG.update(zone)
-        system_state["detection_confidence_threshold"] = confidence
-        system_state["zone_config"] = ZONE_CONFIG.copy()
+        parsed = validate_detection(request.get_json(silent=True))
+    except (KeyError, TypeError, ValueError, OverflowError):
+        return jsonify({"status": "error", "message": "Confidence harus 10?90% dan zona valid dengan lebar/tinggi minimal 10%."}), 400
+    confidence, zone = parsed["confidence"], parsed["zone"]
+    with settings_lock:
+        try:
+            settings_store.save("detection", parsed)
+        except Exception:
+            app.logger.exception("Cannot persist detection settings")
+            return jsonify({"status": "error", "message": "Pengaturan gagal disimpan. Periksa penyimpanan server lalu coba lagi."}), 503
+        with state_lock:
+            DETECTION_CONFIDENCE = confidence
+            ZONE_CONFIG.update(zone)
+            system_state["detection_confidence_threshold"] = confidence
+            system_state["zone_config"] = ZONE_CONFIG.copy()
     return jsonify({"status": "ok", "confidence": confidence, "zone": ZONE_CONFIG.copy()})
 
 
@@ -921,16 +851,19 @@ def review_audio_sample(sample_id):
 @app.route("/api/audio/threshold", methods=["POST"])
 def set_audio_threshold():
     global AUDIO_THRESHOLD_DBFS
-    data = request.get_json(silent=True) or {}
     try:
-        value = float(data["threshold_dbfs"])
-        if not -80 <= value <= -10:
-            raise ValueError
-    except (KeyError, TypeError, ValueError):
+        value = validate_audio(request.get_json(silent=True))["threshold_dbfs"]
+    except (KeyError, TypeError, ValueError, OverflowError):
         return jsonify({"status": "error", "message": "Ambang harus antara -80 dan -10 dBFS."}), 400
-    AUDIO_THRESHOLD_DBFS = value
-    with state_lock:
-        system_state["audio_threshold_dbfs"] = value
+    with settings_lock:
+        try:
+            settings_store.save("audio", {"threshold_dbfs": value})
+        except Exception:
+            app.logger.exception("Cannot persist audio settings")
+            return jsonify({"status": "error", "message": "Ambang gagal disimpan. Periksa penyimpanan server lalu coba lagi."}), 503
+        with state_lock:
+            AUDIO_THRESHOLD_DBFS = value
+            system_state["audio_threshold_dbfs"] = value
     return jsonify({"status": "ok", "threshold_dbfs": value})
 
 
@@ -1087,6 +1020,7 @@ def training_sample_file(filename):
 
 if __name__ == "__main__":
     print("Server Smart Office berjalan di http://127.0.0.1:5000")
+    camera_worker.start()
     if AUDIO_AVAILABLE:
         threading.Thread(target=audio_listener_thread, daemon=True, name="audio-monitor").start()
     app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)

@@ -44,7 +44,7 @@ Pratinjau UI dari backend fixture pengujian, bukan pengukuran perangkat nyata:
 
 Di Windows, launcher memakai compiler WebAssembly untuk kompatibilitas Application Control. `npm run dev:compat` memilih jalur itu secara eksplisit di platform lain. Mode produksi dari `apps/web`: `npm run build:compat` lalu `npm start` (atau `npm run build` pada mesin yang mendukung compiler native); backend produksi tetap dikelola terpisah. Override compiler ini memakai API internal Next.js dan perlu diperiksa kembali saat memperbarui Next.js; gunakan `apps/web/package-lock.json` yang disediakan.
 
-Ketika Flask mati, halaman login menjelaskan kegagalan koneksi; sesi harus diverifikasi sebelum dashboard dapat dibuka. Pada sesi aktif, polling menampilkan error jika endpoint data gagal. Buka hanya satu halaman kamera aktif pada instalasi lokal; generator kamera Flask masih mengikuti koneksi MJPEG dan belum dipisah menjadi satu worker bersama. Rincian pengujian dan konfigurasi proxy produksi ada di [apps/web/README.md](apps/web/README.md).
+Ketika Flask mati, halaman login menjelaskan kegagalan koneksi; sesi harus diverifikasi sebelum dashboard dapat dibuka. Pada sesi aktif, polling menampilkan error jika endpoint data gagal. Kamera dan inference dijalankan satu worker bersama per proses backend; beberapa halaman MJPEG membaca frame terbaru yang sama. Jalankan satu proses backend untuk satu kamera fisik. Rincian pengujian dan konfigurasi proxy produksi ada di [apps/web/README.md](apps/web/README.md).
 
 ## Fitur
 

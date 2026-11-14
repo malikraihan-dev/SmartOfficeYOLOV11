@@ -11,6 +11,7 @@ import unittest
 from datetime import datetime, timezone
 from flask import Flask, request, jsonify
 from sensor_dataset import init_sensor_schema, register_sensor_dataset
+from database import Database
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,6 +29,8 @@ class SensorDatasetTests(unittest.TestCase):
         names = {'db_connect', 'db_write', 'init_database', 'receive_scd40'}
         nodes = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in names]
         exec(compile(ast.Module(body=nodes, type_ignores=[]), 'app_routes', 'exec'), self.ns)
+        database = Database(self.ns['DATABASE_PATH'])
+        self.ns.update(db_connect=database.connect, db_write=database.write, db_read=database.read, init_database=database.initialize)
         self.ns['init_database']()
         register_sensor_dataset(app, self.ns['db_connect'])
         self.client = app.test_client()
@@ -84,6 +87,8 @@ class SensorDatasetTests(unittest.TestCase):
         self.assertEqual(self.client.get('/api/sensors/dataset').get_json()['total_rows'], 0)
 
     def test_empty_limit_and_idempotent_schema(self):
+        database = Database(self.ns['DATABASE_PATH'])
+        self.ns.update(db_connect=database.connect, db_write=database.write, db_read=database.read, init_database=database.initialize)
         self.ns['init_database']()
         self.assertEqual(self.client.get('/api/sensors/dataset').get_json()['rows'], [])
         self.assertEqual(self.client.get('/api/sensors/dataset').headers['Cache-Control'], 'no-store')

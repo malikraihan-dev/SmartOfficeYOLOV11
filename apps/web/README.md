@@ -36,7 +36,7 @@ Sidebar desktop berupa rail 84 px. Kursor dalam jarak 24 px dari rail membuka pa
 
 Polling status 4 detik, dataset/evaluasi 10 detik, timeout 8 detik, no-store, berhenti ketika komponen dilepas, dijeda di tab tersembunyi. Tombol jeda pada monitoring menghentikan polling status; kontrol jeda kamera terpisah. Angka demo ditandai DEMO, pembacaan SCD40 >30 detik ditandai KEDALUWARSA, kegagalan API ditandai TERPUTUS. Riwayat dataset bukan bukti perangkat online. Prediksi tidak diisi sebelum layanan model tersedia.
 
-Form pengaturan hanya diinisialisasi sekali agar polling tidak menimpa suntingan. Zona minimum 10% x 10%. Pengaturan server saat ini tidak persisten setelah restart. Penghapusan memakai dialog native dan konfirmasi ketik HAPUS; tabel sensor tidak dihapus. Unduhan memiliki loading dan pesan error; ekspor asli nonaktif ketika kosong/offline. Unduhan menggunakan Blob browser; pertimbangkan streaming ke disk pada deployment dengan ekspor sangat besar.
+Form pengaturan hanya diinisialisasi sekali agar polling tidak menimpa suntingan. Zona minimum 10% x 10%. Confidence, zona, dan ambang audio disimpan di tabel runtime_settings SQLite dan dimuat kembali setelah restart. Penghapusan memakai dialog native dan konfirmasi ketik HAPUS; tabel sensor tidak dihapus. Unduhan memiliki loading dan pesan error; ekspor asli nonaktif ketika kosong/offline. Unduhan menggunakan Blob browser; pertimbangkan streaming ke disk pada deployment dengan ekspor sangat besar.
 
 ## Verifikasi
 
@@ -68,4 +68,4 @@ location /training_data/ { proxy_pass http://127.0.0.1:5000; }
 location / { proxy_pass http://127.0.0.1:3000; }
 ```
 
-Ini prototipe satu sensor/satu ruangan dengan autentikasi admin lokal. Sebelum deployment multi-user tambahkan identitas perangkat/ruang, pengelolaan peran, backup/retensi, HTTPS dengan cookie Secure dan satu pemilik kamera lintas-klien. Atur `SMARTOFFICE_WEB_ORIGIN` pada backend sesuai origin publik untuk login. Generator kamera mengikuti request: jangan membuka beberapa pratinjau kamera sekaligus.
+Ini prototipe satu sensor/satu ruangan dengan autentikasi admin lokal. Sebelum deployment multi-user tambahkan identitas perangkat/ruang, pengelolaan peran, backup/retensi, HTTPS dengan cookie Secure dan satu pemilik kamera lintas-klien. Atur `SMARTOFFICE_WEB_ORIGIN` pada backend sesuai origin publik untuk login. Worker kamera/inference dibagi antar-klien dalam satu proses backend. Gunakan satu proses backend; beberapa proses OS masih memerlukan layanan kamera terpisah.
