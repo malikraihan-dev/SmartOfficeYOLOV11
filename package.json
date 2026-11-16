@@ -2,8 +2,11 @@
   "name": "smartoffice-local",
   "private": true,
   "scripts": {
-    "dev": "node apps/web/scripts/dev.mjs",
-    "dev:compat": "node apps/web/scripts/dev.mjs --compat",
-    "test:launcher": "node --test apps/web/scripts/dev.test.mjs"
+    "dev": "node frontend/scripts/dev.mjs",
+    "dev:compat": "node frontend/scripts/dev.mjs --compat",
+    "dev:frontend": "npm --prefix frontend run dev:web:compat",
+    "dev:backend": "python backend/app.py",
+    "db:postgres": "python backend/scripts/connect_postgres.py --status",
+    "test:launcher": "node --test frontend/scripts/dev.test.mjs"
   }
 }

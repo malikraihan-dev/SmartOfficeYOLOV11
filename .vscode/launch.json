@@ -2,10 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Jalankan Smart Office YOLOv11",
+            "name": "Jalankan Backend Smart Office YOLOv11",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/app.py",
+            "program": "${workspaceFolder}/backend/app.py",
+            "cwd": "${workspaceFolder}/backend",
             "console": "integratedTerminal"
         }
     ]

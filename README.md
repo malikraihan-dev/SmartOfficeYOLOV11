@@ -2,7 +2,7 @@
 
 Dashboard web untuk pemantauan ruang kerja menggunakan Python, Flask, OpenCV, dan YOLOv11. Aplikasi menampilkan video kamera langsung, deteksi penghuni dan objek meja, status aktivitas, serta pencatatan data untuk evaluasi. Sensor SCD40 melalui ESP32 dapat mengirim data kualitas udara ke server.
 
-Frontend tersedia di `apps/web`: **Next.js App Router + React + TypeScript**, dengan login admin serta lima halaman Monitoring, Dataset sensor, Dataset kamera, Model, dan Pengaturan. Flask mengelola perangkat, inference, SQLite, sesi admin dan seluruh API. Dashboard HTML Flask lama sudah dihapus; port 5000 hanya backend API dan mengarahkan pembukaan root ke login Next.js.
+Frontend tersedia di `frontend/`: **Next.js App Router + React + TypeScript**, dengan login admin serta lima halaman Monitoring, Dataset sensor, Dataset kamera, Model, dan Pengaturan. Backend tersedia di `backend/`: **Python + Flask + OpenCV + YOLOv11**, mengelola perangkat, inference, database (**PostgreSQL** atau fallback **SQLite**), sesi admin, dan seluruh API. Port `5000` hanya melayani backend API dan mengembalikan status JSON pada `/` serta `/api/health` (tidak lagi me-redirect ke port `3000`).
 
 Beranda **http://127.0.0.1:3000/** kini berupa landing page SaaS dengan kartu kaca, hero pratinjau, fitur, alur data, pricing, dan tautan login. Pratinjau publik/login diberi label ilustrasi. Dashboard admin menggunakan grafik riwayat sensor asli. Harga belum ditetapkan dan pembayaran belum diaktifkan; tema yang sama berlaku pada semua halaman.
 
@@ -14,21 +14,46 @@ Rancangan sebelum implementasi: [Google SSO, pendaftaran pengguna, dan persetuju
 
 Kebutuhan tambahan: Node.js 22.20+ dengan npm. Python tetap memakai dependensi di `requirements.txt`.
 
-Dari folder `SmartOffice_YOLOv11`, siapkan dependensi dan akun admin sekali:
+Dari folder `SmartOfficeYOLOV11`, siapkan dependensi backend (`backend/`) dan frontend (`frontend/`) serta akun admin sekali:
 
 ```powershell
-python -m pip install -r requirements.txt
-npm --prefix apps/web ci
-python manage_admin.py
+python -m pip install -r backend/requirements.txt
+npm --prefix frontend ci
+python backend/manage_admin.py
 ```
 
-`manage_admin.py` dijalankan sekali untuk membuat akun admin (atau kembali untuk mereset kata sandi). Isi nama pengguna dan kata sandi minimal 12 karakter. Tidak ada akun/kata sandi bawaan. Windows juga dapat menggunakan `setup_admin.bat`. Data akun dan sesi disimpan terpisah di `instance/admin_auth.db`, yang diabaikan version control. Detail ada di [docs/AUTH.md](docs/AUTH.md).
+### Koneksi Database PostgreSQL (Opsional, Fallback ke SQLite)
 
-Setelah setup, jalankan frontend dan backend dalam satu terminal dari folder yang sama:
+Salin `backend/.env.example` menjadi `backend/.env` dan atur `DATABASE_URL`:
+
+```dotenv
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/smartoffice
+```
+
+Gunakan script `backend/scripts/connect_postgres.py` untuk menguji koneksi, membuat database PostgreSQL secara otomatis, dan menginisialisasi seluruh tabel:
 
 ```powershell
-npm run dev
+python backend/scripts/connect_postgres.py --create-db --init-schema --status
 ```
+
+Jika `DATABASE_URL` tidak diatur, backend otomatis menggunakan SQLite lokal (`backend/smartoffice.db` dan `backend/instance/admin_auth.db`).
+
+### Menjalankan sebagai 2 Service Terpisah atau Gabungan
+
+- **Service Backend mandiri (Port 5000)**:
+  ```powershell
+  cd backend
+  .\.venv\Scripts\python.exe app.py
+  ```
+- **Service Frontend mandiri (Port 3000)**:
+  ```powershell
+  cd frontend
+  npm run dev:web:compat
+  ```
+- **Gabungan dalam satu terminal (dari root)**:
+  ```powershell
+  npm run dev
+  ```
 
 Buka **http://127.0.0.1:3000/login** dan masuk dengan akun yang dibuat. Flask berjalan di **http://127.0.0.1:5000**. Request `/api/*`, `/video_feed`, `/snapshots/*`, dan `/training_data/*` diteruskan ke Flask oleh Next.js. Sesi memakai cookie HttpOnly, bukan credential di source browser. Salin `apps/web/.env.example` menjadi `.env.local` untuk mengubah `SMARTOFFICE_API_URL`, kemudian mulai ulang Next.js.
 
@@ -97,22 +122,26 @@ Kamera harus dapat diakses oleh komputer yang menjalankan Flask. Tutup aplikasi 
 ## Struktur utama
 
 ```text
-SmartOffice_YOLOv11/
-├── app.py                         # Server Flask, deteksi, API, dan database
-├── apps/web/                      # Antarmuka Next.js dan login admin
-├── admin_auth.py                  # Akun, sesi dan perlindungan API
-├── manage_admin.py                # Pembuatan/reset akun lokal
-├── instance/admin_auth.db         # Hash akun dan sesi lokal (tidak dikomit)
-├── requirements.txt               # Dependensi Python
-├── run_windows.bat                # Instalasi dan peluncuran di Windows
-├── best_smartoffice.pt            # Bobot YOLO hasil training khusus (opsional)
-├── yolo11n.pt                     # Bobot model bawaan/fallback
-├── face_detection_yunet_2023mar.onnx # Model deteksi wajah untuk blur privasi
+SmartOfficeYOLOV11/
+├── backend/                       # Service Backend Python (Flask :5000)
+│   ├── app.py                     # Server Flask, deteksi YOLO, API
+│   ├── database.py                # Adapter database PostgreSQL & SQLite
+│   ├── admin_auth.py              # Akun, sesi dan perlindungan API
+│   ├── manage_admin.py            # Pembuatan/reset akun admin
+│   ├── sensor_dataset.py          # Dataset & ekspor sensor SCD40
+│   ├── requirements.txt           # Dependensi Python (+ psycopg2-binary)
+│   ├── .env.example               # Template DATABASE_URL PostgreSQL
+│   ├── run_backend.bat            # Menjalankan service backend mandiri
+│   ├── scripts/
+│   │   └── connect_postgres.py    # Script CLI koneksi & init skema PostgreSQL
+│   └── tests/                     # Unit test backend & PostgreSQL adapter
+├── frontend/                      # Service Frontend Next.js (:3000)
+│   ├── src/                       # Halaman & komponen React/TypeScript
+│   ├── scripts/                   # Script launcher & kompatibilitas WASM
+│   ├── run_frontend.bat           # Menjalankan service frontend mandiri
+│   └── tests/                     # Tes E2E Playwright & mock API
 ├── SCD40_ESP32.ino                # Contoh firmware ESP32 + sensor SCD40
-├── smartoffice.db                 # Database SQLite
-├── snapshots/                     # Snapshot kamera
-├── training_data/                 # Sampel untuk evaluasi/ekspor
-└── dataset_images/                # Gambar dataset hasil pengambilan
+└── sensor_training/               # Dataset dummy & artefak training SCD40
 ```
 
 Folder `snapshots/`, `training_data/`, dan `dataset_images/` dibuat otomatis bila belum tersedia. Database `smartoffice.db` juga diinisialisasi saat aplikasi berjalan.

@@ -6,7 +6,8 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const webRoot = fileURLToPath(new URL("../", import.meta.url));
-const projectRoot = resolve(webRoot, "../..");
+const projectRoot = resolve(webRoot, "..");
+const backendRoot = join(projectRoot, "backend");
 const require = createRequire(import.meta.url);
 
 export function ensurePortFree(port) {
@@ -71,16 +72,17 @@ async function main() {
   const port = Number(portFlag >= 0 ? args[portFlag + 1] : args.find(arg => arg.startsWith("--port="))?.split("=")[1] ?? process.env.PORT ?? 3000);
   if (!Number.isInteger(port) || port < 1 || port > 65535 || port === 5000) throw new Error("Port frontend harus 1–65535 dan berbeda dari port backend 5000.");
   await Promise.all([ensurePortFree(5000), ensurePortFree(port)]);
-  const venv = process.env.VIRTUAL_ENV || join(projectRoot, ".venv");
-  const venvPython = join(venv, process.platform === "win32" ? "Scripts/python.exe" : "bin/python");
-  const python = process.env.SMARTOFFICE_PYTHON || (existsSync(venvPython) ? venvPython : "python");
+  const exeRel = process.platform === "win32" ? "Scripts/python.exe" : "bin/python";
+  const candidateVenvs = [process.env.VIRTUAL_ENV, join(backendRoot, ".venv"), join(projectRoot, ".venv")].filter(Boolean);
+  const foundPython = candidateVenvs.map(dir => join(dir, exeRel)).find(p => existsSync(p));
+  const python = process.env.SMARTOFFICE_PYTHON || foundPython || "python";
   const nextEnv = { SMARTOFFICE_API_URL: "http://127.0.0.1:5000" };
   if (compat) nextEnv.NEXT_TEST_WASM_DIR = dirname(require.resolve("@next/swc-wasm-nodejs"));
   const nextCli = require.resolve("next/dist/bin/next");
   console.log(`Smart Office: web http://127.0.0.1:${port}/login | API http://127.0.0.1:5000`);
   console.log(`Python: ${python}. Ctrl+C menghentikan kedua layanan. Mode ini selalu memakai API lokal.`);
   const services = runServices([
-    { name: "Python", command: python, args: ["-u", join(projectRoot, "app.py")], cwd: projectRoot, env: { SMARTOFFICE_WEB_ORIGIN: `http://127.0.0.1:${port},http://localhost:${port}` } },
+    { name: "Python", command: python, args: ["-u", join(backendRoot, "app.py")], cwd: backendRoot, env: { SMARTOFFICE_WEB_ORIGIN: `http://127.0.0.1:${port},http://localhost:${port}` } },
     { name: "Next.js", command: process.execPath, args: [nextCli, "dev", "--webpack", "--hostname", "127.0.0.1", ...args], cwd: webRoot, env: nextEnv },
   ]);
   const shutdown = () => { console.log("\nMenghentikan Smart Office…"); void services.stop(); };

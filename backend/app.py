@@ -10,6 +10,8 @@ import uuid
 import zipfile
 from collections import deque, Counter
 from datetime import datetime, timezone
+from database import connect_database, get_db_engine_name, resolve_database_target
+from mqtt_listener import get_mqtt_config, start_mqtt_listener
 from sensor_dataset import init_sensor_schema, register_sensor_dataset
 from admin_auth import register_admin_auth
 
@@ -45,7 +47,7 @@ if os.path.isfile(FACE_MODEL_PATH) and hasattr(cv2, "FaceDetectorYN_create"):
 SNAPSHOT_DIR = os.path.join(app.root_path, "snapshots")
 DATASET_DIR = os.path.join(app.root_path, "training_data")
 RAW_DATASET_DIR = os.path.join(app.root_path, "dataset_images")
-DATABASE_PATH = os.path.join(app.root_path, "smartoffice.db")
+DATABASE_PATH = resolve_database_target(default_sqlite=os.path.join(app.root_path, "smartoffice.db"))
 BRIGHTNESS_THRESHOLD = 10.0
 DETECTION_CONFIDENCE = 0.35
 ZONE_CONFIG = {"x1": 0.12, "y1": 0.15, "x2": 0.88, "y2": 0.92}
@@ -76,6 +78,7 @@ system_state = {
     "visual_activity": "Menunggu kamera", "desk_objects": [],
     "co2_ppm": None, "temperature_c": None, "humidity_percent": None,
     "sensor_status": "Mode demo (data dummy)", "sensor_updated_at": None,
+    "mqtt_status": "Menunggu inisialisasi MQTT", "mqtt_last_message_at": None,
     "final_validation": "Menunggu kamera...", "snapshots": [],
     "camera_status": "Mencari kamera", "camera_index": None,
     "last_frame_at": None,
@@ -94,6 +97,8 @@ system_state = {
 
 
 def db_connect():
+    if "connect_database" in globals():
+        return connect_database(DATABASE_PATH)
     connection = sqlite3.connect(DATABASE_PATH, timeout=10)
     connection.row_factory = sqlite3.Row
     return connection
@@ -756,8 +761,30 @@ def generate_video_frames():
 
 @app.route("/")
 @app.route("/monitoring")
+@app.route("/api/health")
 def index():
-    return redirect(os.environ.get("SMARTOFFICE_WEB_ORIGIN", "http://127.0.0.1:3000").split(",")[0].rstrip("/") + "/login", code=302)
+    mqtt_cfg = get_mqtt_config() if "get_mqtt_config" in globals() else {"enabled": False, "topic": "smartoffice/scd40/telemetry"}
+    mqtt_status = system_state.get("mqtt_status") if "system_state" in globals() else None
+    return jsonify({
+        "service": "smartoffice-backend",
+        "status": "ok",
+        "database_engine": get_db_engine_name(DATABASE_PATH),
+        "mqtt": {
+            "enabled": mqtt_cfg["enabled"],
+            "topic": mqtt_cfg["topic"],
+            "status": mqtt_status,
+        },
+        "model": os.path.basename(MODEL_PATH),
+        "frontend_origin": os.environ.get("SMARTOFFICE_WEB_ORIGIN", "http://127.0.0.1:3000").split(",")[0].rstrip("/"),
+        "endpoints": {
+            "health": "/api/health",
+            "session": "/api/auth/session",
+            "status": "/api/status",
+            "sensors_dataset": "/api/sensors/dataset",
+            "scd40_ingest": "/api/scd40",
+            "video_feed": "/video_feed",
+        },
+    })
 
 
 @app.route("/video_feed")
@@ -1089,4 +1116,5 @@ if __name__ == "__main__":
     print("Server Smart Office berjalan di http://127.0.0.1:5000")
     if AUDIO_AVAILABLE:
         threading.Thread(target=audio_listener_thread, daemon=True, name="audio-monitor").start()
+    start_mqtt_listener(db_write=db_write, state_lock=state_lock, system_state=system_state)
     app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)

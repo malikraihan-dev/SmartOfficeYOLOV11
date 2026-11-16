@@ -12,7 +12,13 @@ def main():
     confirmation = getpass.getpass('Ulangi kata sandi: ')
     if password != confirmation:
         raise ValueError('Konfirmasi kata sandi tidak cocok. Akun tidak diubah.')
-    store = AdminStore(os.environ.get('SMARTOFFICE_AUTH_DB', str(Path(__file__).resolve().parent / 'instance' / 'admin_auth.db')))
+    default_auth_target = (
+        os.environ.get('SMARTOFFICE_AUTH_DB')
+        or os.environ.get('SMARTOFFICE_DATABASE_URL')
+        or os.environ.get('DATABASE_URL')
+        or str(Path(__file__).resolve().parent / 'instance' / 'admin_auth.db')
+    )
+    store = AdminStore(default_auth_target)
     store.set_admin(username, password)
     print('Akun admin tersimpan. Sesi lama akun ini dicabut. Buka http://127.0.0.1:3000/login untuk masuk.')
 
