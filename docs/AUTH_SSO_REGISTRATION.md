@@ -6,10 +6,10 @@ Keputusan pengguna: dokumentasikan arsitektur dan alur di folder `docs`; semua p
 
 ## 1. Kondisi saat ini
 
-- `admin_auth.py` memiliki `AdminStore`, tabel `admins`, `admin_sessions`, dan `login_attempts` dalam `instance/admin_auth.db`.
-- Akun dibuat melalui `manage_admin.py`; belum ada register publik atau email akun.
+- `backend/admin_auth.py` memiliki `AdminStore`, tabel `admins`, `admin_sessions`, dan `login_attempts` dalam `backend/instance/admin_auth.db` (atau PostgreSQL via `DATABASE_URL`/`SMARTOFFICE_AUTH_DB`).
+- Akun dibuat melalui `backend/manage_admin.py`; belum ada register publik atau email akun.
 - Login memakai username/password, hash scrypt, cookie HttpOnly `smartoffice_admin`, sesi 8 jam, serta CSRF untuk mutasi.
-- `apps/web/src/lib/session.ts` memeriksa sesi melalui Flask. Respons sesi saat ini selalu menyatakan peran `admin`.
+- `frontend/src/lib/session.ts` memeriksa sesi melalui Flask. Respons sesi saat ini selalu menyatakan peran `admin`.
 - Next.js meneruskan `/api/*` ke Flask; database sensor dan perangkat tetap dimiliki backend Python.
 
 Detail perilaku aktif ada di [AUTH.md](AUTH.md). Dokumen tersebut tetap menjadi acuan untuk menjalankan versi sekarang.
@@ -56,7 +56,7 @@ auth/
   tokens.py            # token sekali pakai
   admin.py             # daftar pendaftaran dan keputusan admin
 migrations/auth/       # migrasi versi database akun
-apps/web/src/
+frontend/src/
   app/register/page.tsx
   app/verify-email/page.tsx
   app/forgot-password/page.tsx
@@ -66,11 +66,11 @@ apps/web/src/
   features/auth/       # perluas login-form, tambah form dan status akun
   features/users/      # daftar pending dan tindakan admin
   lib/session.ts       # requireSession, requireActiveUser, requireAdmin
-tests/                 # unit/integrasi auth tanpa perangkat
-apps/web/tests/        # alur browser dengan backend fixture
+backend/tests/         # unit/integrasi auth tanpa perangkat
+frontend/tests/        # alur browser dengan backend fixture
 ```
 
-`app.py` tetap menjadi entry point. `admin_auth.py` menjadi lapisan kompatibilitas selama pemindahan; `manage_admin.py` memakai store baru setelah migrasi. Tidak perlu memindahkan seluruh backend atau mengganti framework untuk fitur ini.
+`backend/app.py` tetap menjadi entry point. `backend/admin_auth.py` menjadi lapisan kompatibilitas selama pemindahan; `backend/manage_admin.py` memakai store baru setelah migrasi. Tidak perlu memindahkan seluruh backend atau mengganti framework untuk fitur ini.
 
 ## 4. Struktur data
 

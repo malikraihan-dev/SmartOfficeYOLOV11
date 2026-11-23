@@ -14,7 +14,7 @@
 
 Frontend: `/` (landing publik), `/login`, `/monitoring`, `/datasets/sensors`, `/datasets/vision`, `/models`, dan `/settings` pada port 3000. Dashboard Flask lama telah dihapus; route root Flask mengarahkan ke login Next.js.
 
-Implementasi memakai sistem SaaS glassmorphism yang konsisten pada beranda, login, dan seluruh halaman admin. Token dasar berada di `apps/web/src/styles/tokens.css`, aturan layout di `console.css`, dan tema SaaS di `saas.css`. Ikon garis Lucide dan angka tabular digunakan bersama. Route/root layout memakai Server Component; polling dan kontrol memakai Client Component per fitur. Menu ponsel mendukung Escape, focus trap, dan pengembalian fokus. Tombol hapus tetap memakai konfirmasi ketik HAPUS.
+Implementasi memakai sistem SaaS glassmorphism yang konsisten pada beranda, login, dan seluruh halaman admin. Token dasar berada di `frontend/src/styles/tokens.css`, aturan layout di `console.css`, dan tema SaaS di `saas.css`. Ikon garis Lucide dan angka tabular digunakan bersama. Route/root layout memakai Server Component; polling dan kontrol memakai Client Component per fitur. Menu ponsel mendukung Escape, focus trap, dan pengembalian fokus. Tombol hapus tetap memakai konfirmasi ketik HAPUS.
 
 Sidebar desktop tetap ringkas 84 px dan terbuka 268 px saat kursor mendekati tepi, menutup setelah jeda 240 ms saat menjauh tanpa menggeser konten. Login memakai dua panel desktop, satu kolom ponsel, field berlabel, tampil/sembunyikan sandi, loading dan pesan error berfokus. Topbar menampilkan akun admin dan tombol keluar.
 

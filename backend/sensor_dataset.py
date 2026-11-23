@@ -104,7 +104,10 @@ def register_sensor_dataset(app, db_connect):
         }
         if kind not in allowed:
             return jsonify(message='File tidak ditemukan.'), 404
-        path = Path(app.root_path) / allowed[kind]
+        rel = allowed[kind]
+        path = Path(app.root_path) / rel
+        if not path.is_file():
+            path = Path(app.root_path).parent / rel
         if not path.is_file():
             return jsonify(message='File training belum tersedia di server.'), 404
         return send_file(path, as_attachment=True, download_name=path.name)

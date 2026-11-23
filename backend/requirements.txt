@@ -3,3 +3,6 @@ opencv-python
 flask
 numpy
 sounddevice
+psycopg2-binary
+python-dotenv
+paho-mqtt

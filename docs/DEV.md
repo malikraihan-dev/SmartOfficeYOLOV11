@@ -1,12 +1,12 @@
 # Satu perintah untuk pengembangan lokal
 
-Dari root `SmartOffice_YOLOv11` atau `apps/web`, jalankan `npm run dev`. Launcher memulai Python `app.py` pada port 5000 dan Next.js pada port 3000. Windows memakai compiler WebAssembly yang sudah tersedia di dependensi proyek. Tidak ada dependensi Node baru.
+Dari root `SmartOfficeYOLOV11` atau `frontend`, jalankan `npm run dev`. Launcher memulai Python `backend/app.py` pada port 5000 dan Next.js pada port 3000. Windows memakai compiler WebAssembly yang sudah tersedia di dependensi proyek. Tidak ada dependensi Node baru.
 
-Setup satu kali: pasang dependensi Python (`python -m pip install -r requirements.txt`), frontend (`npm --prefix apps/web ci` dari root), dan akun admin (`python manage_admin.py`). Launcher tidak menginstal paket atau membuat akun.
+Setup satu kali: pasang dependensi Python (`python -m pip install -r backend/requirements.txt`), frontend (`npm --prefix frontend ci` dari root), dan akun admin (`python backend/manage_admin.py`). Launcher tidak menginstal paket atau membuat akun.
 
-Python dipilih dari `SMARTOFFICE_PYTHON`, virtual environment aktif, `.venv` proyek, atau `python` di PATH. Interpreter khusus harus berupa executable/path, tanpa argumen shell. Backend selalu dijalankan dengan working directory root agar model, database dan aset memakai lokasi yang benar.
+Python dipilih dari `SMARTOFFICE_PYTHON`, virtual environment aktif, `.venv` proyek, atau `python` di PATH. Interpreter khusus harus berupa executable/path, tanpa argumen shell. Backend dijalankan dengan working directory `backend/` agar model, database, dan aset memakai lokasi yang benar.
 
-`npm run dev -- --port 3001` memilih port frontend lain dan menyesuaikan origin login Python. Port backend tetap 5000. Launcher selalu memakai API lokal, termasuk ketika `.env.local` menunjuk backend lain. Untuk backend yang sudah berjalan atau backend eksternal, gunakan `npm run dev:web` atau `npm run dev:web:compat` dari `apps/web`. `run_frontend.bat` memakai jalur frontend saja. Produksi tetap memakai build/start dan backend terkelola terpisah.
+`npm run dev -- --port 3001` memilih port frontend lain dan menyesuaikan origin login Python. Port backend tetap 5000. Launcher selalu memakai API lokal, termasuk ketika `.env.local` menunjuk backend lain. Untuk backend yang sudah berjalan atau backend eksternal, gunakan `npm run dev:web` atau `npm run dev:web:compat` dari `frontend`. `run_frontend.bat` memakai jalur frontend saja. Produksi tetap memakai build/start dan backend terkelola terpisah.
 
 Ctrl+C menghentikan layanan yang dibuat launcher beserta turunannya. Jika salah satu layanan gagal, layanan lainnya ikut dihentikan dan launcher mengembalikan status gagal. Sebelum startup, kedua port diperiksa. Server lama atau proses lain tidak dihentikan otomatis; hentikan server lama lewat terminalnya sebelum memakai launcher. Layanan tidak memakai autorestart; setelah mengubah backend Python, hentikan dan jalankan kembali launcher.
 

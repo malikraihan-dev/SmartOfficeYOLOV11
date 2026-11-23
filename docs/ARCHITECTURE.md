@@ -1,6 +1,6 @@
 # Rancangan migrasi Next.js dan Python
 
-Status: **frontend dan login admin diimplementasikan**. Next.js App Router + TypeScript tersedia di `apps/web`, dengan login dan lima halaman sesuai DESIGN.md. Backend tetap Flask; dashboard HTML lama telah dihapus. Port 5000 mengelola API, perangkat dan sesi admin. Pemisahan backend, layanan prediksi sensor, dan deployment banyak perangkat masih rancangan.
+Status: **frontend dan login admin diimplementasikan**. Next.js App Router + TypeScript tersedia di `frontend/`, dengan login dan lima halaman sesuai DESIGN.md. Backend berada di `backend/` memakai Flask + PostgreSQL/SQLite + MQTT listener; dashboard HTML lama telah dihapus. Port 5000 mengelola API, perangkat dan sesi admin. Pemisahan layanan prediksi sensor dan deployment banyak perangkat masih rancangan.
 
 ## Pilihan stack
 
@@ -47,13 +47,13 @@ smartoffice/
   README.md
 ```
 
-Struktur di atas adalah tujuan jangka panjang. Frontend memakai `apps/web/src/app`, `components`, `features`, `lib`, dan `styles`. Backend `app.py`, `sensor_dataset.py`, notebook, model, dan data lama tidak dipindah agar aplikasi tetap berjalan.
+Struktur di atas adalah tujuan jangka panjang. Saat ini frontend memakai `frontend/src/app`, `components`, `features`, `lib`, dan `styles`, sedangkan backend memakai `backend/` (`app.py`, `camera_worker.py`, `database.py`, `settings_store.py`, `mqtt_listener.py`, `sensor_dataset.py`, `admin_auth.py`).
 
 ## Alur data
 
-ESP32 → API Python → database → API ringkasan/CSV → halaman Dataset sensor → Colab → model + metadata → validasi → layanan prediksi Python → halaman monitoring.
+ESP32 (MQTT / HTTP) → backend Python → PostgreSQL/SQLite → API ringkasan/CSV → halaman Dataset sensor → Colab → model + metadata → validasi → layanan prediksi Python → halaman monitoring.
 
-Untuk tahap lokal, Next.js rewrites meneruskan `/api/*`, `/video_feed`, `/snapshots/*`, dan `/training_data/*` ke `SMARTOFFICE_API_URL` (default `http://127.0.0.1:5000`), sisanya ditangani Next.js. Untuk produksi, gunakan reverse proxy dengan buffering MJPEG nonaktif; contoh ada di `apps/web/README.md`. Endpoint status dan dataset sensor memakai `no-store`. Polling dibatasi timeout 8 detik, tidak tumpang tindih, berhenti saat komponen dilepas, dan dijeda saat tab disembunyikan. Pembacaan sensor lebih dari 30 detik ditandai kedaluwarsa. Tidak ada loop kamera di Next.js. CameraWorker membagikan satu generator kamera/inference kepada semua request MJPEG dalam satu proses. Worker berjalan mandiri dari kecepatan dan disconnect klien. Gunakan satu proses backend untuk satu kamera fisik.
+Untuk tahap lokal, Next.js rewrites meneruskan `/api/*`, `/video_feed`, `/snapshots/*`, dan `/training_data/*` ke `SMARTOFFICE_API_URL` (default `http://127.0.0.1:5000`), sisanya ditangani Next.js. Untuk produksi, gunakan reverse proxy dengan buffering MJPEG nonaktif; contoh ada di `frontend/README.md`. Endpoint status dan dataset sensor memakai `no-store`. Polling dibatasi timeout 8 detik, tidak tumpang tindih, berhenti saat komponen dilepas, dan dijeda saat tab disembunyikan. Pembacaan sensor lebih dari 30 detik ditandai kedaluwarsa. Tidak ada loop kamera di Next.js. CameraWorker membagikan satu generator kamera/inference kepada semua request MJPEG dalam satu proses. Worker berjalan mandiri dari kecepatan dan disconnect klien. Gunakan satu proses backend untuk satu kamera fisik.
 
 ## Tahapan dan kriteria selesai
 
@@ -61,7 +61,7 @@ Untuk tahap lokal, Next.js rewrites meneruskan `/api/*`, `/video_feed`, `/snapsh
 2. **Frontend (diimplementasikan):** shell Next.js, monitoring, dataset sensor/kamera, model dan pengaturan memakai API yang sama. Tes browser memakai API fixture terisolasi untuk loading, kosong, offline, mobile, keyboard, ekspor, ulasan dan pengaturan. Kamera fisik, mikrofon dan ESP32 perlu uji integrasi perangkat terpisah.
 3. **Pisahkan backend:** keluarkan database, kamera, audio, dan sensor dari `app.py`. Pindah ke FastAPI hanya jika ada alasan yang jelas; pertahankan kontrak dengan tes.
 4. **Integrasi model:** verifikasi asal, versi library, daftar fitur, horizon, interval, dan metrik terhadap baseline. Pasang hanya artefak tepercaya. Riwayat kurang dari 31 menit/celah data harus menghasilkan status unavailable, bukan prediksi dummy.
-5. **Banyak perangkat/deployment:** tambahkan identitas room/device, peran pengguna yang lebih lengkap, retensi, backup, dan timestamp ukur perangkat. Login admin lokal serta proteksi unduhan sudah diimplementasikan di `admin_auth.py`; token ingest perangkat opsional. Autentikasi memakai database terpisah `instance/admin_auth.db`, cookie opaque HttpOnly dan sesi 8 jam, bukan credential pada browser. Lihat [AUTH.md](AUTH.md).
+5. **Banyak perangkat/deployment:** tambahkan identitas room/device, peran pengguna yang lebih lengkap, retensi, backup, dan timestamp ukur perangkat. Login admin lokal serta proteksi unduhan sudah diimplementasikan di `backend/admin_auth.py`; token ingest perangkat opsional. Autentikasi memakai PostgreSQL atau SQLite `backend/instance/admin_auth.db`, cookie opaque HttpOnly dan sesi 8 jam, bukan credential pada browser. Lihat [AUTH.md](AUTH.md).
 
 ## Struktur README yang disarankan
 

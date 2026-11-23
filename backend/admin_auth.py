@@ -11,6 +11,7 @@ from contextlib import contextmanager
 
 from flask import g, jsonify, request
 from werkzeug.security import check_password_hash, generate_password_hash
+from database import connect_database, is_postgres_target, resolve_database_target
 
 COOKIE_NAME = 'smartoffice_admin'
 SESSION_SECONDS = 8 * 60 * 60
@@ -18,8 +19,9 @@ SESSION_SECONDS = 8 * 60 * 60
 
 class AdminStore:
     def __init__(self, path):
-        self.path = str(path)
-        Path(self.path).parent.mkdir(parents=True, exist_ok=True)
+        self.path = resolve_database_target(path)
+        if not is_postgres_target(self.path):
+            Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         with self.connect() as db:
             db.executescript('''
                 CREATE TABLE IF NOT EXISTS admins (
@@ -37,8 +39,7 @@ class AdminStore:
 
     @contextmanager
     def connect(self):
-        db = sqlite3.connect(self.path, timeout=10)
-        db.row_factory = sqlite3.Row
+        db = connect_database(self.path)
         try:
             with db:
                 yield db
@@ -69,7 +70,13 @@ class AdminStore:
 
 
 def register_admin_auth(app, store=None):
-    store = store or AdminStore(os.environ.get('SMARTOFFICE_AUTH_DB', str(Path(app.root_path) / 'instance' / 'admin_auth.db')))
+    default_auth_target = (
+        os.environ.get('SMARTOFFICE_AUTH_DB')
+        or os.environ.get('SMARTOFFICE_DATABASE_URL')
+        or os.environ.get('DATABASE_URL')
+        or str(Path(app.root_path) / 'instance' / 'admin_auth.db')
+    )
+    store = store or AdminStore(default_auth_target)
     app.extensions['admin_store'] = store
     app.config.setdefault('ADMIN_COOKIE_SECURE', os.environ.get('SMARTOFFICE_COOKIE_SECURE') == '1')
     app.config.setdefault('ADMIN_WEB_ORIGINS', os.environ.get('SMARTOFFICE_WEB_ORIGIN', 'http://127.0.0.1:3000,http://localhost:3000').split(','))
@@ -88,7 +95,7 @@ def register_admin_auth(app, store=None):
             if token and not hmac.compare_digest(request.headers.get('X-Device-Token', '').encode(), token.encode()):
                 return failure('Token perangkat tidak valid.', 401)
             return None
-        if request.path in ('/api/auth/session', '/api/auth/login'):
+        if request.path in ('/api/auth/session', '/api/auth/login', '/api/health'):
             return None
         admin_session = store.session(request.cookies.get(COOKIE_NAME))
         if not admin_session:
@@ -127,7 +134,7 @@ def register_admin_auth(app, store=None):
         if len(data['username']) > 40 or len(data['password']) > 128:
             return failure('Nama pengguna atau kata sandi tidak sesuai.', 400)
         if not store.configured():
-            return failure('Akun admin belum dibuat. Jalankan python manage_admin.py pada komputer server.', 503)
+            return failure('Akun admin belum dibuat. Jalankan python backend/manage_admin.py pada komputer server.', 503)
         address = request.remote_addr or 'unknown'
         now = time.time()
         with store.connect() as db:

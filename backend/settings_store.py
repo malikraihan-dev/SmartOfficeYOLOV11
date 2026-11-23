@@ -1,8 +1,8 @@
 """Validated settings persisted independently of device state."""
-from contextlib import closing
 import json
 import math
-import sqlite3
+
+from database import connect_database, resolve_database_target
 
 
 def validate_detection(data):
@@ -32,22 +32,38 @@ class SettingsStore:
     validators = {"detection": validate_detection, "audio": validate_audio}
 
     def __init__(self, path):
-        self.path = path
-        with closing(sqlite3.connect(path, timeout=10)) as db, db:
-            db.execute("CREATE TABLE IF NOT EXISTS runtime_settings (name TEXT PRIMARY KEY, value TEXT NOT NULL)")
+        self.path = resolve_database_target(path)
+        db = connect_database(self.path)
+        try:
+            with db:
+                db.execute("CREATE TABLE IF NOT EXISTS runtime_settings (name TEXT PRIMARY KEY, value TEXT NOT NULL)")
+        finally:
+            db.close()
 
     def save(self, name, value):
         value = self.validators[name](value)
-        with closing(sqlite3.connect(self.path, timeout=10)) as db, db:
-            db.execute("INSERT INTO runtime_settings VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET value=excluded.value",
-                       (name, json.dumps(value, allow_nan=False)))
+        db = connect_database(self.path)
+        try:
+            with db:
+                db.execute(
+                    "INSERT INTO runtime_settings VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET value=excluded.value",
+                    (name, json.dumps(value, allow_nan=False)),
+                )
+        finally:
+            db.close()
         return value
 
     def load(self, name, default):
-        with closing(sqlite3.connect(self.path, timeout=10)) as db, db:
+        db = connect_database(self.path)
+        try:
             row = db.execute("SELECT value FROM runtime_settings WHERE name=?", (name,)).fetchone()
+        finally:
+            db.close()
         return self.validators[name](json.loads(row[0]) if row else default)
 
     def contains(self, name):
-        with closing(sqlite3.connect(self.path, timeout=10)) as db, db:
+        db = connect_database(self.path)
+        try:
             return db.execute("SELECT 1 FROM runtime_settings WHERE name=?", (name,)).fetchone() is not None
+        finally:
+            db.close()

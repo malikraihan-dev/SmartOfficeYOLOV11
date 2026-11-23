@@ -7,14 +7,15 @@ import csv
 import io
 import uuid
 import zipfile
+import atexit
 from collections import deque, Counter
 from datetime import datetime, timezone
-from sensor_dataset import register_sensor_dataset
-from database import Database
-from settings_store import SettingsStore, validate_detection, validate_audio
-from camera_worker import CameraWorker
-import atexit
 from admin_auth import register_admin_auth
+from camera_worker import CameraWorker
+from database import Database, get_db_engine_name, resolve_database_target
+from mqtt_listener import get_mqtt_config, start_mqtt_listener
+from sensor_dataset import register_sensor_dataset
+from settings_store import SettingsStore, validate_detection, validate_audio
 
 import cv2
 import numpy as np
@@ -49,7 +50,10 @@ DATA_ROOT = os.environ.get("SMARTOFFICE_DATA_DIR", app.root_path)
 SNAPSHOT_DIR = os.path.join(DATA_ROOT, "snapshots")
 DATASET_DIR = os.path.join(DATA_ROOT, "training_data")
 RAW_DATASET_DIR = os.path.join(DATA_ROOT, "dataset_images")
-DATABASE_PATH = os.environ.get("SMARTOFFICE_DATABASE", os.path.join(app.root_path, "smartoffice.db"))
+DATABASE_PATH = resolve_database_target(
+    explicit_target=os.environ.get("SMARTOFFICE_DATABASE"),
+    default_sqlite=os.path.join(app.root_path, "smartoffice.db"),
+)
 BRIGHTNESS_THRESHOLD = 10.0
 DETECTION_CONFIDENCE = 0.35
 ZONE_CONFIG = {"x1": 0.12, "y1": 0.15, "x2": 0.88, "y2": 0.92}
@@ -86,6 +90,7 @@ system_state = {
     "visual_activity": "Menunggu kamera", "desk_objects": [],
     "co2_ppm": None, "temperature_c": None, "humidity_percent": None,
     "sensor_status": "Mode demo (data dummy)", "sensor_updated_at": None,
+    "mqtt_status": "Menunggu inisialisasi MQTT", "mqtt_last_message_at": None,
     "final_validation": "Menunggu kamera...", "snapshots": [],
     "camera_status": "Mencari kamera", "camera_index": None,
     "last_frame_at": None,
@@ -441,25 +446,39 @@ def generate_video_frames():
             if cap is not None and cap.isOpened():
                 ok, frame = cap.read()
 
-            # Try common Windows webcam indices and backends; retry every 3 seconds if unavailable.
+            # Try configured camera source or common webcam indices; retry every 3 seconds if unavailable.
             if not ok and now >= retry_at:
                 if cap is not None:
                     cap.release()
                 cap = None
-                for index in range(4):
-                    for backend in (cv2.CAP_DSHOW, cv2.CAP_MSMF, cv2.CAP_ANY):
-                        candidate = cv2.VideoCapture(index, backend)
-                        if candidate.isOpened():
-                            candidate.set(cv2.CAP_PROP_FRAME_WIDTH, 480)
-                            candidate.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
-                            candidate.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-                            read_ok, first_frame = candidate.read()
-                            if read_ok:
-                                cap, camera_index, ok, frame = candidate, index, True, first_frame
-                                break
+                custom_cam = os.environ.get("SMARTOFFICE_CAMERA_SOURCE", "").strip()
+                if custom_cam:
+                    source_arg = int(custom_cam) if custom_cam.isdigit() else custom_cam
+                    candidate = cv2.VideoCapture(source_arg)
+                    if candidate.isOpened():
+                        read_ok, first_frame = candidate.read()
+                        if read_ok:
+                            cap, camera_index, ok, frame = candidate, custom_cam, True, first_frame
+                    if not ok:
                         candidate.release()
-                    if ok:
-                        break
+                else:
+                    backends = (cv2.CAP_DSHOW, cv2.CAP_MSMF, cv2.CAP_ANY) if os.name == "nt" else (cv2.CAP_ANY,)
+                    for index in range(4):
+                        if os.name != "nt" and not os.path.exists(f"/dev/video{index}"):
+                            continue
+                        for backend in backends:
+                            candidate = cv2.VideoCapture(index, backend)
+                            if candidate.isOpened():
+                                candidate.set(cv2.CAP_PROP_FRAME_WIDTH, 480)
+                                candidate.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
+                                candidate.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                                read_ok, first_frame = candidate.read()
+                                if read_ok:
+                                    cap, camera_index, ok, frame = candidate, index, True, first_frame
+                                    break
+                            candidate.release()
+                        if ok:
+                            break
                 retry_at = now + 3
 
             if not ok:
@@ -685,8 +704,30 @@ atexit.register(camera_worker.stop)
 
 @app.route("/")
 @app.route("/monitoring")
+@app.route("/api/health")
 def index():
-    return redirect(os.environ.get("SMARTOFFICE_WEB_ORIGIN", "http://127.0.0.1:3000").split(",")[0].rstrip("/") + "/login", code=302)
+    mqtt_cfg = get_mqtt_config() if "get_mqtt_config" in globals() else {"enabled": False, "topic": "smartoffice/scd40/telemetry"}
+    mqtt_status = system_state.get("mqtt_status") if "system_state" in globals() else None
+    return jsonify({
+        "service": "smartoffice-backend",
+        "status": "ok",
+        "database_engine": get_db_engine_name(DATABASE_PATH),
+        "mqtt": {
+            "enabled": mqtt_cfg["enabled"],
+            "topic": mqtt_cfg["topic"],
+            "status": mqtt_status,
+        },
+        "model": os.path.basename(MODEL_PATH),
+        "frontend_origin": os.environ.get("SMARTOFFICE_WEB_ORIGIN", "http://127.0.0.1:3000").split(",")[0].rstrip("/"),
+        "endpoints": {
+            "health": "/api/health",
+            "session": "/api/auth/session",
+            "status": "/api/status",
+            "sensors_dataset": "/api/sensors/dataset",
+            "scd40_ingest": "/api/scd40",
+            "video_feed": "/video_feed",
+        },
+    })
 
 
 @app.route("/video_feed")
@@ -740,7 +781,7 @@ def set_detection_settings():
     try:
         parsed = validate_detection(request.get_json(silent=True))
     except (KeyError, TypeError, ValueError, OverflowError):
-        return jsonify({"status": "error", "message": "Confidence harus 10?90% dan zona valid dengan lebar/tinggi minimal 10%."}), 400
+        return jsonify({"status": "error", "message": "Confidence harus 10–90% dan zona valid dengan lebar/tinggi minimal 10%."}), 400
     confidence, zone = parsed["confidence"], parsed["zone"]
     with settings_lock:
         try:
@@ -1023,4 +1064,5 @@ if __name__ == "__main__":
     camera_worker.start()
     if AUDIO_AVAILABLE:
         threading.Thread(target=audio_listener_thread, daemon=True, name="audio-monitor").start()
+    start_mqtt_listener(db_write=db_write, state_lock=state_lock, system_state=system_state)
     app.run(host="0.0.0.0", port=5000, debug=False, threaded=True)

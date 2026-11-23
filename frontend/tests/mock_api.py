@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import logging
 from datetime import datetime, timezone, timedelta
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'backend'))
 from flask import Flask, jsonify, request, Response
 from admin_auth import AdminStore, register_admin_auth
 
