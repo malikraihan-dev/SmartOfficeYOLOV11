@@ -1,0 +1,90 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartoffice-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-1234}
+      POSTGRES_DB: ${POSTGRES_DB:-smartoffice}
+    ports:
+      # Port 5433 di Windows diarahkan ke 5432 di container agar tidak bentrok dengan PostgreSQL lokal Windows.
+      # Di DBeaver, hubungkan ke Host: localhost, Port: 5433, Database: smartoffice, User: postgres, Pass: 1234
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-smartoffice}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - smartoffice-net
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: smartoffice-mosquitto
+    restart: unless-stopped
+    ports:
+      - "${MQTT_HOST_PORT:-1883}:1883"
+    volumes:
+      - ./docker/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+    networks:
+      - smartoffice-net
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: smartoffice-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mosquitto:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-1234}@postgres:5432/${POSTGRES_DB:-smartoffice}
+      MQTT_ENABLED: "1"
+      MQTT_BROKER_HOST: mosquitto
+      MQTT_BROKER_PORT: "1883"
+      MQTT_TOPIC: ${MQTT_TOPIC:-smartoffice/scd40/telemetry}
+      SMARTOFFICE_WEB_ORIGIN: http://127.0.0.1:3000,http://localhost:3000
+      SMARTOFFICE_AUTO_SEED: ${SMARTOFFICE_AUTO_SEED:-1}
+      SMARTOFFICE_ADMIN_USER: ${SMARTOFFICE_ADMIN_USER:-admin}
+      SMARTOFFICE_ADMIN_PASSWORD: ${SMARTOFFICE_ADMIN_PASSWORD:-smartoffice2026}
+      SMARTOFFICE_CAMERA_SOURCE: ${SMARTOFFICE_CAMERA_SOURCE:-}
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend/snapshots:/app/backend/snapshots
+      - ./backend/training_data:/app/backend/training_data
+      - ./backend/dataset_images:/app/backend/dataset_images
+    networks:
+      - smartoffice-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        SMARTOFFICE_API_URL: http://backend:5000
+    container_name: smartoffice-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      SMARTOFFICE_API_URL: http://backend:5000
+    ports:
+      - "3000:3000"
+    networks:
+      - smartoffice-net
+
+volumes:
+  pgdata:
+  mosquitto_data:
+
+networks:
+  smartoffice-net:
+    driver: bridge

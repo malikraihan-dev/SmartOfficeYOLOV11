@@ -38,7 +38,27 @@ python backend/scripts/connect_postgres.py --create-db --init-schema --status
 
 Jika `DATABASE_URL` tidak diatur, backend otomatis menggunakan SQLite lokal (`backend/smartoffice.db` dan `backend/instance/admin_auth.db`).
 
-### Menjalankan sebagai 2 Service Terpisah atau Gabungan
+### Menjalankan Seluruh Sistem dengan Docker Compose (Direkomendasikan)
+
+Seluruh 4 layanan (**PostgreSQL**, **Mosquitto MQTT Broker**, **Backend Python/YOLOv11**, dan **Frontend Next.js**) dapat dijalankan sekaligus menggunakan satu perintah dari folder `SmartOfficeYOLOV11`:
+
+```powershell
+docker compose up -d --build
+```
+
+Saat container menyala pertama kali, `backend/scripts/docker_bootstrap.py` otomatis:
+1. Menunggu container PostgreSQL siap (`smartoffice-postgres`),
+2. Membuat seluruh 10 tabel database,
+3. Mengisi 5 baris data awal sensor (`--seed`), dan
+4. Membuat akun admin bawaan (`username`: `admin`, `password`: `smartoffice2026` — dapat diubah melalui environment variable `SMARTOFFICE_ADMIN_USER` & `SMARTOFFICE_ADMIN_PASSWORD`).
+
+Akses layanan Docker:
+- **Frontend Web & Login**: `http://localhost:3000/login`
+- **Backend Health JSON**: `http://localhost:5000/api/health`
+- **MQTT Broker (ESP32-S3)**: Port `1883` (topic `smartoffice/scd40/telemetry`)
+- **Database PostgreSQL (DBeaver)**: Host `localhost`, Port `5433`, Database `smartoffice`, User `postgres`, Password `1234`
+
+### Menjalankan Secara Lokal Tanpa Docker (2 Service Terpisah atau Gabungan)
 
 - **Service Backend mandiri (Port 5000)**:
   ```powershell

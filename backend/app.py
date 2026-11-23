@@ -524,25 +524,39 @@ def generate_video_frames():
         if cap is not None and cap.isOpened():
             ok, frame = cap.read()
 
-        # Try common Windows webcam indices and backends; retry every 3 seconds if unavailable.
+        # Try configured camera source or common webcam indices; retry every 3 seconds if unavailable.
         if not ok and now >= retry_at:
             if cap is not None:
                 cap.release()
             cap = None
-            for index in range(4):
-                for backend in (cv2.CAP_DSHOW, cv2.CAP_MSMF, cv2.CAP_ANY):
-                    candidate = cv2.VideoCapture(index, backend)
-                    if candidate.isOpened():
-                        candidate.set(cv2.CAP_PROP_FRAME_WIDTH, 480)
-                        candidate.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
-                        candidate.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-                        read_ok, first_frame = candidate.read()
-                        if read_ok:
-                            cap, camera_index, ok, frame = candidate, index, True, first_frame
-                            break
+            custom_cam = os.environ.get("SMARTOFFICE_CAMERA_SOURCE", "").strip()
+            if custom_cam:
+                source_arg = int(custom_cam) if custom_cam.isdigit() else custom_cam
+                candidate = cv2.VideoCapture(source_arg)
+                if candidate.isOpened():
+                    read_ok, first_frame = candidate.read()
+                    if read_ok:
+                        cap, camera_index, ok, frame = candidate, custom_cam, True, first_frame
+                if not ok:
                     candidate.release()
-                if ok:
-                    break
+            else:
+                backends = (cv2.CAP_DSHOW, cv2.CAP_MSMF, cv2.CAP_ANY) if os.name == "nt" else (cv2.CAP_ANY,)
+                for index in range(4):
+                    if os.name != "nt" and not os.path.exists(f"/dev/video{index}"):
+                        continue
+                    for backend in backends:
+                        candidate = cv2.VideoCapture(index, backend)
+                        if candidate.isOpened():
+                            candidate.set(cv2.CAP_PROP_FRAME_WIDTH, 480)
+                            candidate.set(cv2.CAP_PROP_FRAME_HEIGHT, 360)
+                            candidate.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+                            read_ok, first_frame = candidate.read()
+                            if read_ok:
+                                cap, camera_index, ok, frame = candidate, index, True, first_frame
+                                break
+                        candidate.release()
+                    if ok:
+                        break
             retry_at = now + 3
 
         if not ok:

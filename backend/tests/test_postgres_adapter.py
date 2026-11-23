@@ -18,6 +18,7 @@ from database import (
 )
 from mqtt_listener import get_mqtt_config, parse_and_validate_scd40_payload, process_mqtt_scd40_message
 from scripts.connect_postgres import mask_dsn, resolve_postgres_dsn
+from scripts.docker_bootstrap import wait_for_database
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 
@@ -147,3 +148,8 @@ class PostgresAdapterTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             parse_and_validate_scd40_payload('{"co2_ppm":0,"temperature_c":25,"humidity_percent":50}')
+
+    def test_docker_bootstrap_wait_for_database_succeeds_on_sqlite(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            db_file = Path(tmp) / "boot.db"
+            wait_for_database(str(db_file), max_attempts=2, delay_sec=0.01)

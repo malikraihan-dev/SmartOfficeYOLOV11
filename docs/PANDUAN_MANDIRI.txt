@@ -1,0 +1,256 @@
+======================================================================
+PANDUAN MENJALANKAN SMARTOFFICE YOLOV11 SECARA MANDIRI (WINDOWS)
+======================================================================
+
+Panduan ini berisi langkah menjalankan proyek langsung di komputer Anda
+sendiri, termasuk cara mengatasi setup MQTT Mosquitto agar tidak ribet
+dengan username/password serta cara memastikan PostgreSQL tampil di
+DBeaver (tanpa harus memakai pgAdmin).
+
+----------------------------------------------------------------------
+1. PILIH MODE YANG PALING SESUAI
+----------------------------------------------------------------------
+A. MODE 1 - CEPAT DENGAN SQLITE (Tanpa Postgres & Tanpa MQTT)
+   Cocok untuk uji cepat webcam, YOLO, dan tampilan dashboard.
+   Database otomatis memakai file lokal backend/smartoffice.db.
+   Cukup siapkan dependensi + akun admin lalu jalankan: npm run dev
+
+B. MODE 2 - HYBRID: WEBCAM LOKAL + POSTGRES & MQTT VIA DOCKER (PALING DISARANKAN)
+   Cocok jika Anda butuh webcam USB laptop, database PostgreSQL, dan
+   broker MQTT tanpa pusing menginstal Postgres/Mosquitto di Windows:
+   1. Jalankan hanya Postgres dan Mosquitto di Docker:
+      docker compose up -d postgres mosquitto
+   2. Di file backend/.env atur:
+      DATABASE_URL=postgresql://postgres:1234@127.0.0.1:5433/smartoffice
+      MQTT_ENABLED=1
+      MQTT_BROKER_HOST=127.0.0.1
+      MQTT_BROKER_PORT=1883
+   3. Inisialisasi tabel Postgres:
+      python backend/scripts/connect_postgres.py --init-schema --status
+   4. Jalankan Backend dan Frontend langsung di Windows (Bagian 5).
+   Keuntungan: Webcam laptop langsung terbaca, MQTT langsung jalan
+   tanpa password, dan DBeaver langsung bisa melihat tabel di port 5433.
+
+C. MODE 3 - FULL LOKAL DI WINDOWS (Tanpa Docker sama sekali)
+   Semua komponen (Python, Node.js, PostgreSQL Windows port 5432, dan
+   Mosquitto Windows port 1883) diinstal langsung di Windows.
+
+----------------------------------------------------------------------
+2. SETUP AWAL SEKALI (PYTHON, NODE.JS, .ENV, ADMIN)
+----------------------------------------------------------------------
+Prasyarat:
+- Python 3.10+ (pastikan python dan pip tersedia di terminal)
+- Node.js 22.20+ dengan npm
+
+Langkah dari folder root SmartOfficeYOLOV11:
+
+1. Buat virtual environment dan pasang dependensi Python:
+   python -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   python -m pip install --upgrade pip
+   python -m pip install -r backend/requirements.txt
+
+   (Jika ingin venv khusus di folder backend, buat di backend\.venv)
+
+2. Pasang dependensi Frontend:
+   npm --prefix frontend ci
+
+3. Salin template konfigurasi backend:
+   Copy-Item backend\.env.example backend\.env
+
+4. Buat akun admin (simpan username & password 12-128 karakter):
+   python backend/manage_admin.py
+   Atau klik dua kali file: setup_admin.bat
+
+   Catatan: Jika Anda mengatur DATABASE_URL ke PostgreSQL di
+   backend/.env, lakukan Langkah 4 (Setup PostgreSQL) terlebih dahulu
+   sebelum membuat akun admin agar akun admin langsung tersimpan di
+   PostgreSQL, bukan SQLite.
+
+----------------------------------------------------------------------
+3. PANDUAN MQTT MOSQUITTO ANTI-RIBET DI WINDOWS
+----------------------------------------------------------------------
+Kenapa instalasi MQTT di Windows kemarin terasa ribet?
+Sejak Mosquitto versi 2.0 ke atas, konfigurasi bawaan dibuat sangat
+ketat:
+1. Mosquitto default hanya mendengarkan koneksi dari komputer sendiri
+   (127.0.0.1), sehingga ESP32-S3 dari jaringan Wi-Fi pasti ditolak.
+2. Mode anonim default dimatikan (allow_anonymous false), tetapi tidak
+   ada username/password bawaan yang dibuatkan saat instalasi.
+   Akibatnya ESP32 ataupun script Python langsung gagal terhubung jika
+   tidak mengedit mosquitto.conf atau membuat file passwd lebih dulu.
+
+Berikut dua cara mengaturnya (pilih salah satu):
+
+OPSI A - TANPA USERNAME & PASSWORD (PALING PRAKTIS UNTUK LOKAL/LAB)
+Cocok saat pengujian di hotspot pribadi atau jaringan lab terpercaya.
+
+1. Jika memakai Docker (Mode Hybrid):
+   Tidak perlu ubah apa pun. File docker/mosquitto/mosquitto.conf
+   sudah mengaktifkan listener 1883 0.0.0.0 dan allow_anonymous true.
+
+2. Jika memakai Mosquitto yang diinstal di Windows:
+   a. Buka Notepad dengan "Run as Administrator".
+   b. Buka file: C:\Program Files\mosquitto\mosquitto.conf
+   c. Tambahkan 2 baris berikut di bagian paling bawah file lalu Save:
+      listener 1883 0.0.0.0
+      allow_anonymous true
+   d. Restart layanan Mosquitto (PowerShell as Administrator):
+      Restart-Service mosquitto
+      (Atau buka services.msc -> cari "Mosquitto Broker" -> Restart).
+
+3. Konfigurasi di backend/.env (biarkan username/password dikomentari):
+   MQTT_ENABLED=1
+   MQTT_BROKER_HOST=127.0.0.1
+   MQTT_BROKER_PORT=1883
+   MQTT_TOPIC=smartoffice/scd40/telemetry
+   # MQTT_USERNAME=
+   # MQTT_PASSWORD=
+
+4. Konfigurasi di SCD40_ESP32.ino:
+   const char* MQTT_USER = "";
+   const char* MQTT_PASS = "";
+
+OPSI B - PAKAI USERNAME & PASSWORD (OPSIONAL UNTUK WI-FI PUBLIK/KAMPUS)
+Jika memakai Mosquitto Windows dan ingin tetap memakai login MQTT:
+
+1. Buka PowerShell as Administrator, lalu buat user (misal: smartoffice):
+   & "C:\Program Files\mosquitto\mosquitto_passwd.exe" -c "C:\Program Files\mosquitto\passwd" smartoffice
+   Ketik password yang diinginkan lalu ulangi.
+
+2. Edit C:\Program Files\mosquitto\mosquitto.conf (Notepad as Admin),
+   tambahkan:
+   listener 1883 0.0.0.0
+   allow_anonymous false
+   password_file C:\Program Files\mosquitto\passwd
+
+3. Restart service Mosquitto:
+   Restart-Service mosquitto
+
+4. Samakan di backend/.env:
+   MQTT_USERNAME=smartoffice
+   MQTT_PASSWORD=password_yang_anda_buat
+
+5. Samakan juga di SCD40_ESP32.ino:
+   const char* MQTT_USER = "smartoffice";
+   const char* MQTT_PASS = "password_yang_anda_buat";
+
+LANGKAH WAJIB TAMBAHAN UNTUK ESP32-S3:
+- Izinkan port TCP 1883 di Windows Firewall (PowerShell as Admin):
+  New-NetFirewallRule -DisplayName "Mosquitto MQTT 1883" -Direction Inbound -Protocol TCP -LocalPort 1883 -Action Allow
+- Cek IPv4 komputer Anda lewat cmd/PowerShell: ipconfig
+  Isi IPv4 tersebut ke MQTT_BROKER di SCD40_ESP32.ino.
+
+TES CEPAT MQTT TANPA ESP32:
+Jalankan:
+  python backend/scripts/publish_mqtt_test.py
+
+Arti Kode Error MQTT yang Sering Muncul di Serial Monitor ESP32:
+- rc = -2 : Broker tidak terjangkau (IP MQTT_BROKER salah, port 1883
+            masih diblokir Firewall, atau mosquitto.conf belum memakai
+            "listener 1883 0.0.0.0").
+- rc = 5  : Not Authorized (username/password salah, atau Mosquitto
+            masih memakai allow_anonymous false saat MQTT_USER kosong).
+
+----------------------------------------------------------------------
+4. SETUP POSTGRESQL LOKAL & SOLUSI DBEAVER TIDAK MENAMPILKAN TABEL
+----------------------------------------------------------------------
+A. Atur backend/.env:
+   - Jika memakai PostgreSQL bawaan Windows (port 5432):
+     DATABASE_URL=postgresql://postgres:PASSWORD_POSTGRES_ANDA@127.0.0.1:5432/smartoffice
+   - Jika memakai PostgreSQL Docker (Mode Hybrid, port 5433):
+     DATABASE_URL=postgresql://postgres:1234@127.0.0.1:5433/smartoffice
+
+B. Buat database & seluruh 10 tabel otomatis lewat terminal:
+   python backend/scripts/connect_postgres.py --create-db --init-schema --status
+
+   Pastikan output menampilkan status TERHUBUNG dan daftar 10 tabel:
+   sensor_readings, evaluation_samples, occupancy_samples,
+   tracking_points, quality_events, audio_samples, zone_visits,
+   admins, admin_sessions, login_attempts.
+
+C. Cara Membuka & Melihat Tabel di DBeaver (Pengganti pgAdmin):
+   1. Buka DBeaver -> klik New Database Connection -> pilih PostgreSQL.
+   2. Isi form koneksi:
+      - Host     : 127.0.0.1
+      - Port     : 5432 (untuk Postgres lokal Windows)
+                   atau 5433 (untuk Postgres Docker)
+      - Database : smartoffice
+      - Username : postgres
+      - Password : sesuai password PostgreSQL Anda (1234 jika Docker)
+   3. Centang kotak "Show all databases" pada layar koneksi.
+   4. Klik "Test Connection" (klik Download jika diminta unduh driver
+      JDBC pertama kali), lalu klik Finish.
+   5. Klik kanan nama koneksi di sebelah kiri -> Refresh (F5).
+   6. Buka folder: smartoffice -> Schemas -> public -> Tables.
+
+KENAPA POSTGRESQL SERING TIDAK TAMPIL DI DBEAVER?
+1. Backend Diam-Diam Jatuh ke Fallback SQLite:
+   Jika DATABASE_URL di backend/.env masih dikomentari (#), typo,
+   atau belum disave, backend tetap berjalan normal tetapi menulis
+   data ke file backend/smartoffice.db (SQLite), sehingga database
+   PostgreSQL kosong atau bahkan belum punya tabel sama sekali.
+   Cara cek pasti: buka http://127.0.0.1:5000/api/health dan pastikan
+   nilai "database_engine" adalah "postgresql" (bukan "sqlite").
+2. Opsi "Show all databases" di DBeaver Belum Dicentang:
+   Secara default DBeaver sering hanya menampilkan database bernama
+   "postgres". Jika database target Anda bernama "smartoffice" dan
+   "Show all databases" tidak dicentang (atau salah isi nama database),
+   database smartoffice tidak muncul di panel navigator.
+3. Tertukar Port 5432 (Postgres Windows) vs 5433 (Postgres Docker):
+   Jika Anda menjalankan Docker Postgres (port 5433) tetapi DBeaver
+   konek ke port default 5432 (Postgres Windows lokal), Anda melihat
+   server yang berbeda yang tidak berisi tabel Smart Office.
+4. Driver JDBC Belum Terunduh / Gagal Unduh:
+   DBeaver tidak menyertakan driver PostgreSQL secara bawaan; ia
+   mengunduhnya saat pertama kali klik Test Connection. Jika saat itu
+   offline atau dibatalkan, daftar database/tabel gagal dimuat.
+5. Cache Tree DBeaver Belum Di-Refresh atau Salah Resolusi "localhost":
+   - Setelah menjalankan connect_postgres.py --init-schema atau app.py,
+     DBeaver tidak otomatis me-refresh panel kiri; harus tekan F5 /
+     klik kanan -> Refresh pada node connection atau Schemas -> public.
+   - Menggunakan Host "127.0.0.1" menghindari konflik resolusi IPv6
+     (::1) milik "localhost" di Windows saat layanan hanya listen di IPv4.
+
+----------------------------------------------------------------------
+5. MENJALANKAN BACKEND & FRONTEND MANDIRI
+----------------------------------------------------------------------
+Setelah setup selesai, Anda punya dua cara menjalankan aplikasi:
+
+Cara 1 - Satu Terminal (Gabungan Frontend + Backend):
+Dari folder root SmartOfficeYOLOV11:
+  npm run dev
+
+Cara 2 - Dua Terminal Terpisah (lebih mudah melihat log masing-masing):
+- Terminal 1 (Backend Port 5000):
+  cd backend
+  ..\.venv\Scripts\python.exe app.py
+  (Atau gunakan script: backend\run_backend.bat atau run_windows.bat)
+
+- Terminal 2 (Frontend Port 3000):
+  cd frontend
+  npm run dev:web:compat
+  (Atau gunakan script: frontend\run_frontend.bat atau run_frontend.bat)
+
+Verifikasi:
+- Backend Health : http://127.0.0.1:5000/api/health
+- Web Login      : http://127.0.0.1:3000/login
+
+----------------------------------------------------------------------
+6. TROUBLESHOOTING CEPAT
+----------------------------------------------------------------------
+- Port 3000 atau 5000 sedang dipakai:
+  Hentikan terminal/server lama yang masih menyala (atau tutup proses
+  node/python di Task Manager), lalu jalankan ulang.
+
+- Webcam tidak terbuka:
+  Tutup aplikasi lain yang memakai kamera (Zoom, Meet, Teams, Kamera
+  Windows, atau tab browser lain). Jika punya lebih dari satu kamera,
+  atur SMARTOFFICE_CAMERA_SOURCE=0 (atau 1) di environment/backend/.env.
+
+- Data sensor di web masih bertuliskan DEMO:
+  Pastikan Mosquitto berjalan, backend log menunjukkan
+  "[MQTT] Terhubung ke broker ...", dan coba jalankan tes publish:
+  python backend/scripts/publish_mqtt_test.py
+
+======================================================================

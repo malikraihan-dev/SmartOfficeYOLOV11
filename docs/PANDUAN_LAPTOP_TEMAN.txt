@@ -1,0 +1,194 @@
+======================================================================
+PANDUAN MENJALANKAN SMARTOFFICE YOLOV11 DI LAPTOP TEMAN (DOCKER MODE)
+======================================================================
+
+Panduan ini dibuat khusus agar proyek SmartOfficeYOLOV11 bisa langsung
+berjalan di laptop lain dengan langkah paling ringkas menggunakan
+Docker Compose, tanpa perlu instalasi manual PostgreSQL, Mosquitto
+MQTT, maupun pengaturan username/password MQTT yang rumit.
+
+Semua 4 layanan dijalankan otomatis dalam satu perintah:
+1. PostgreSQL 16 (database di port host 5433)
+2. Eclipse Mosquitto 2 (MQTT broker di port 1883, tanpa password)
+3. Backend Python + Flask + YOLOv11 (port 5000)
+4. Frontend Next.js (port 3000)
+
+----------------------------------------------------------------------
+1. PERSIAPAN SEKALI DI LAPTOP TEMAN
+----------------------------------------------------------------------
+1. Install Docker Desktop for Windows:
+   https://www.docker.com/products/docker-desktop/
+   Pastikan Docker Desktop sudah dibuka dan ikon status di pojok kanan
+   bawah (system tray) berwarna hijau / bertuliskan "Engine running".
+2. Install Git for Windows (atau salin folder proyek lewat ZIP/USB).
+3. (Opsional) Install DBeaver Community jika ingin melihat isi tabel
+   PostgreSQL dengan ringan tanpa pgAdmin:
+   https://dbeaver.io/download/
+   Pastikan laptop terhubung ke internet pada run pertama untuk mengunduh
+   image Docker dan dependensi Python/Node.js.
+
+----------------------------------------------------------------------
+2. CARA CLONE DAN MENJALANKAN PROYEK
+----------------------------------------------------------------------
+Buka PowerShell atau Terminal, lalu jalankan:
+
+1. Clone repository (atau masuk ke folder proyek hasil ekstrak ZIP):
+   git clone https://github.com/malikraihan-dev/SmartOfficeYOLOV11.git
+   cd SmartOfficeYOLOV11
+
+   Catatan: Jika fitur Docker/PostgreSQL/MQTT ini belum di-merge ke
+   branch main, pastikan checkout ke branch fitur yang sesuai terlebih
+   dahulu (misalnya: git checkout <nama-branch>).
+
+2. Jalankan seluruh layanan dengan satu perintah:
+   docker compose up -d --build
+
+   Tunggu beberapa menit saat build pertama (mengunduh PyTorch CPU,
+   Ultralytics, Next.js, Postgres, dan Mosquitto).
+
+3. Cek apakah ke-4 container sudah aktif:
+   docker compose ps
+
+   Pastikan smartoffice-postgres, smartoffice-mosquitto,
+   smartoffice-backend, dan smartoffice-frontend berstatus Up/Running.
+
+4. Cek backend lewat browser atau PowerShell:
+   Buka: http://localhost:5000/api/health
+   Pastikan muncul JSON dengan "status": "ok" dan
+   "database_engine": "postgresql".
+
+----------------------------------------------------------------------
+3. AKSES APLIKASI WEB & LOGIN ADMIN
+----------------------------------------------------------------------
+Saat container menyala pertama kali, script docker_bootstrap.py di
+backend otomatis membuat seluruh 10 tabel database dan membuat akun
+admin bawaan.
+
+- Halaman Frontend & Login : http://localhost:3000/login
+- Health Check Backend     : http://localhost:5000/api/health
+
+Akun login bawaan di docker-compose.yml:
+- Username : admin
+- Password : smartoffice2026
+
+(Opsional) Jika ingin mengganti akun/password sebelum run pertama, atur
+environment variable SMARTOFFICE_ADMIN_USER dan
+SMARTOFFICE_ADMIN_PASSWORD (minimal 12 karakter) sebelum menjalankan
+docker compose up -d --build.
+
+Catatan Kamera USB di Docker Windows:
+Docker Desktop di Windows berjalan di dalam WSL2, sehingga webcam USB
+bawaan laptop tidak otomatis diteruskan ke dalam container backend.
+- Dashboard, login, MQTT, dan database tetap berjalan normal (kamera
+  menampilkan mode pencarian/demo jika tidak ada sumber kamera).
+- Jika ingin memakai kamera IP/RTSP di Docker, isi environment variable
+  SMARTOFFICE_CAMERA_SOURCE di docker-compose.yml dengan URL stream
+  RTSP/HTTP kamera tersebut.
+- Jika wajib memakai webcam USB laptop secara langsung, jalankan backend
+  langsung di Windows menggunakan Mode Hybrid pada panduan di file:
+  docs/PANDUAN_MANDIRI.txt
+
+----------------------------------------------------------------------
+4. MQTT MOSQUITTO TANPA RIBET (OTOMATIS DI DOCKER)
+----------------------------------------------------------------------
+Container smartoffice-mosquitto sudah memakai konfigurasi proyek di
+docker/mosquitto/mosquitto.conf:
+  listener 1883 0.0.0.0
+  allow_anonymous true
+
+Artinya:
+- TIDAK perlu install Mosquitto manual di Windows.
+- TIDAK perlu membuat file password atau setup username/password MQTT.
+
+A. Tes Kirim Data Sensor SCD40 Tanpa Alat ESP32:
+   Jalankan perintah berikut dari folder SmartOfficeYOLOV11:
+   docker compose exec backend python scripts/publish_mqtt_test.py --host mosquitto --port 1883
+
+   Setelah itu cek terminal log backend atau buka halaman Dataset Sensor
+   di http://localhost:3000/datasets/sensors untuk melihat data masuk.
+
+B. Jika Menghubungkan ESP32-S3 + SCD40 Fisik:
+   1. Pastikan laptop teman dan ESP32 berada di jaringan Wi-Fi yang
+      sama (disarankan hotspot HP atau Wi-Fi lokal tanpa client isolation).
+   2. Cek alamat IPv4 laptop teman di PowerShell/CMD dengan perintah:
+      ipconfig
+      (Contoh IPv4: 192.168.1.10)
+   3. Buka file SCD40_ESP32.ino di Arduino IDE dan sesuaikan bagian atas:
+      - WIFI_SSID     = "NAMA_WIFI"
+      - WIFI_PASSWORD = "PASSWORD_WIFI"
+      - MQTT_BROKER   = "192.168.1.10"   (ganti dengan IPv4 laptop teman)
+      - MQTT_PORT     = 1883
+      - MQTT_TOPIC    = "smartoffice/scd40/telemetry"
+      - MQTT_USER     = ""               (kosongkan)
+      - MQTT_PASS     = ""               (kosongkan)
+   4. Izinkan port TCP 1883 di Windows Firewall laptop teman agar ESP32
+      bisa terhubung ke broker Mosquitto. Jalankan PowerShell sebagai
+      Administrator:
+      New-NetFirewallRule -DisplayName "Mosquitto MQTT 1883" -Direction Inbound -Protocol TCP -LocalPort 1883 -Action Allow
+
+----------------------------------------------------------------------
+5. CARA KONEKSI POSTGRESQL DI DBEAVER (PENGGANTI PGADMIN)
+----------------------------------------------------------------------
+DBeaver jauh lebih ringan daripada pgAdmin. Gunakan pengaturan berikut
+untuk melihat database Docker di DBeaver:
+
+Parameter Koneksi DBeaver (KHUSUS DOCKER):
+- Driver   : PostgreSQL
+- Host     : 127.0.0.1   (lebih aman daripada "localhost" di Windows)
+- Port     : 5433        (PENTING: Docker memakai 5433, BUKAN 5432!)
+- Database : smartoffice
+- Username : postgres
+- Password : 1234
+
+Langkah di DBeaver:
+1. Klik ikon colokan (New Database Connection) -> pilih PostgreSQL.
+2. Isi Host = 127.0.0.1, Port = 5433, Database = smartoffice,
+   Username = postgres, Password = 1234.
+3. PENTING: Centang opsi "Show all databases" (di bagian PostgreSQL /
+   Connection settings). Jika tidak dicentang, kadang database
+   smartoffice tidak tampil di tree sebelah kiri.
+4. Klik "Test Connection". Jika muncul popup "Download driver files",
+   klik Download (butuh internet sekali saja untuk unduh driver JDBC).
+5. Klik Finish.
+6. Di Database Navigator (kiri), klik kanan nama koneksi -> Refresh (F5),
+   lalu buka: smartoffice -> Schemas -> public -> Tables.
+
+5 Alasan Utama Kenapa PostgreSQL Sering Tidak Tampil di DBeaver:
+1. Salah Port (5432 vs 5433): Docker Compose memetakan port 5433 di
+   Windows agar tidak bentrok dengan PostgreSQL Windows lokal (5432).
+   Jika DBeaver dibiarkan di default 5432, DBeaver akan tersambung ke
+   PostgreSQL Windows yang kosong (atau gagal tersambung).
+2. Opsi "Show all databases" Belum Dicentang: DBeaver hanya menampilkan
+   database default "postgres" saja kecuali "Show all databases"
+   dicentang, atau nama database "smartoffice" diketik eksplisit.
+3. Lupa Refresh (F5) setelah bootstrap / init schema: DBeaver menyimpan
+   cache daftar tabel. Klik kanan koneksi/Schemas/Tables -> Refresh (F5).
+4. Driver JDBC PostgreSQL Belum Terunduh: DBeaver butuh mengunduh
+   driver PostgreSQL JDBC saat koneksi pertama kali (atau tidak ada
+   koneksi internet saat test connection).
+5. Masalah IPv6 "localhost" vs "127.0.0.1" di Windows: Terkadang
+   "localhost" mengarah ke ::1 (IPv6) sedangkan port forwarding Docker
+   merespons di 127.0.0.1 (IPv4). Selalu gunakan Host 127.0.0.1.
+
+----------------------------------------------------------------------
+6. PERINTAH HARIAN & PEMELIHARAAN DOCKER
+----------------------------------------------------------------------
+- Melihat log backend (YOLO, API, MQTT masuk):
+  docker compose logs -f backend
+
+- Melihat log semua layanan:
+  docker compose logs -f
+
+- Menghentikan sementara tanpa menghapus data:
+  docker compose stop
+
+- Menyalakan ulang layanan yang sempat di-stop:
+  docker compose start
+
+- Mematikan dan menghapus container (data di volume pgdata tetap aman):
+  docker compose down
+
+- PERINGATAN - Reset total termasuk MENGHAPUS ISI DATABASE PostgreSQL:
+  docker compose down -v
+
+======================================================================
