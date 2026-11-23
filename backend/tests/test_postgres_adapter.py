@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 from flask import Flask, jsonify
 
 from database import (
+    Database,
     DatabaseConnection,
     HybridRow,
     connect_database,
@@ -19,6 +20,7 @@ from database import (
 from mqtt_listener import get_mqtt_config, parse_and_validate_scd40_payload, process_mqtt_scd40_message
 from scripts.connect_postgres import mask_dsn, resolve_postgres_dsn
 from scripts.docker_bootstrap import wait_for_database
+from settings_store import SettingsStore
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 
@@ -153,3 +155,45 @@ class PostgresAdapterTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             db_file = Path(tmp) / "boot.db"
             wait_for_database(str(db_file), max_attempts=2, delay_sec=0.01)
+
+    def test_sql_translation_converts_real_to_double_precision_in_ddl_only(self):
+        ddl, _ = translate_sql_for_postgres(
+            "CREATE TABLE IF NOT EXISTS admin_sessions (token_hash TEXT PRIMARY KEY, expires_at REAL NOT NULL)"
+        )
+        self.assertIn("expires_at DOUBLE PRECISION NOT NULL", ddl)
+
+        alter_ddl, _ = translate_sql_for_postgres(
+            "ALTER TABLE occupancy_samples ADD COLUMN camera_fps REAL DEFAULT 0"
+        )
+        self.assertIn("camera_fps DOUBLE PRECISION DEFAULT 0", alter_ddl)
+
+        dml, _ = translate_sql_for_postgres(
+            "INSERT INTO sensor_readings (timestamp,co2_ppm,temperature_c,humidity_percent,source) VALUES (?,?,?,?,?)"
+        )
+        self.assertNotIn("DOUBLE PRECISION", dml)
+
+    def test_database_and_settings_store_initialize_and_persist(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            db_path = str(Path(tmp) / "unified.db")
+            db = Database(db_path)
+            db.initialize()
+            db.initialize()
+            db.write(
+                "INSERT INTO sensor_readings (timestamp,co2_ppm,temperature_c,humidity_percent,source) VALUES (?,?,?,?,?)",
+                ("2026-11-16T08:00:00Z", 705.0, 24.5, 51.0, "scd40"),
+            )
+            rows = db.read("SELECT COUNT(*) AS n FROM sensor_readings")
+            self.assertEqual(rows[0]["n"], 1)
+
+            store = SettingsStore(db_path)
+            detection = {"confidence": 0.5, "zone": {"x1": 0.1, "y1": 0.2, "x2": 0.9, "y2": 0.8}}
+            store.save("detection", detection)
+            self.assertTrue(store.contains("detection"))
+            self.assertEqual(SettingsStore(db_path).load("detection", {}), detection)
+
+            upsert_sql, upsert_ret = translate_sql_for_postgres(
+                "INSERT INTO runtime_settings VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET value=excluded.value"
+            )
+            self.assertIn("ON CONFLICT(name) DO UPDATE SET value=excluded.value", upsert_sql)
+            self.assertEqual(upsert_sql.count("%s"), 2)
+            self.assertFalse(upsert_ret)

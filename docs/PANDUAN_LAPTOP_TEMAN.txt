@@ -40,19 +40,30 @@ Buka PowerShell atau Terminal, lalu jalankan:
    branch main, pastikan checkout ke branch fitur yang sesuai terlebih
    dahulu (misalnya: git checkout <nama-branch>).
 
-2. Jalankan seluruh layanan dengan satu perintah:
+2. (Opsional) Jika ingin mengatur password admin awal atau variabel lain,
+   salin .env.example menjadi .env:
+   Copy-Item .env.example .env
+   Isi SMARTOFFICE_ADMIN_PASSWORD (12-128 karakter) di .env.
+   Atau boleh dilewati dan buat akun admin setelah container menyala.
+
+3. Jalankan seluruh layanan dengan satu perintah:
    docker compose up -d --build
 
    Tunggu beberapa menit saat build pertama (mengunduh PyTorch CPU,
    Ultralytics, Next.js, Postgres, dan Mosquitto).
 
-3. Cek apakah ke-4 container sudah aktif:
+4. Cek apakah ke-4 container sudah aktif:
    docker compose ps
 
    Pastikan smartoffice-postgres, smartoffice-mosquitto,
    smartoffice-backend, dan smartoffice-frontend berstatus Up/Running.
 
-4. Cek backend lewat browser atau PowerShell:
+5. Jika belum menyetel SMARTOFFICE_ADMIN_PASSWORD di .env, buat akun
+   admin pertama kali lewat perintah:
+   docker compose exec backend python manage_admin.py
+   (Password wajib 12-128 karakter; tidak ada password bawaan di repo).
+
+6. Cek backend lewat browser atau PowerShell:
    Buka: http://localhost:5000/api/health
    Pastikan muncul JSON dengan "status": "ok" dan
    "database_engine": "postgresql".
@@ -61,20 +72,18 @@ Buka PowerShell atau Terminal, lalu jalankan:
 3. AKSES APLIKASI WEB & LOGIN ADMIN
 ----------------------------------------------------------------------
 Saat container menyala pertama kali, script docker_bootstrap.py di
-backend otomatis membuat seluruh 10 tabel database dan membuat akun
-admin bawaan.
+backend otomatis membuat seluruh 11 tabel database (termasuk
+runtime_settings dan tabel autentikasi).
 
 - Halaman Frontend & Login : http://localhost:3000/login
 - Health Check Backend     : http://localhost:5000/api/health
 
-Akun login bawaan di docker-compose.yml:
-- Username : admin
-- Password : smartoffice2026
-
-(Opsional) Jika ingin mengganti akun/password sebelum run pertama, atur
-environment variable SMARTOFFICE_ADMIN_USER dan
-SMARTOFFICE_ADMIN_PASSWORD (minimal 12 karakter) sebelum menjalankan
-docker compose up -d --build.
+Catatan Seed Data Awal:
+Secara default SMARTOFFICE_AUTO_SEED=0 agar data simulasi tidak
+mengotori dataset SCD40 asli. Jika butuh contoh 5 baris data awal untuk
+demo cepat, set SMARTOFFICE_AUTO_SEED=1 di .env lalu jalankan ulang
+docker compose up -d (atau jalankan:
+docker compose exec backend python scripts/connect_postgres.py --seed).
 
 Catatan Kamera USB di Docker Windows:
 Docker Desktop di Windows berjalan di dalam WSL2, sehingga webcam USB
@@ -138,12 +147,12 @@ Parameter Koneksi DBeaver (KHUSUS DOCKER):
 - Port     : 5433        (PENTING: Docker memakai 5433, BUKAN 5432!)
 - Database : smartoffice
 - Username : postgres
-- Password : 1234
+- Password : postgres    (atau sesuai POSTGRES_PASSWORD di .env)
 
 Langkah di DBeaver:
 1. Klik ikon colokan (New Database Connection) -> pilih PostgreSQL.
 2. Isi Host = 127.0.0.1, Port = 5433, Database = smartoffice,
-   Username = postgres, Password = 1234.
+   Username = postgres, Password = postgres (atau sesuai .env).
 3. PENTING: Centang opsi "Show all databases" (di bagian PostgreSQL /
    Connection settings). Jika tidak dicentang, kadang database
    smartoffice tidak tampil di tree sebelah kiri.

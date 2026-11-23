@@ -26,6 +26,9 @@ const char* MQTT_TOPIC    = "smartoffice/scd40/telemetry";
 // Kosongkan ("") jika Mosquitto memakai allow_anonymous true
 const char* MQTT_USER     = "";
 const char* MQTT_PASS     = "";
+
+// Opsional: samakan dengan SMARTOFFICE_DEVICE_TOKEN di backend jika diaktifkan
+const char* DEVICE_TOKEN  = "";
 // =================================================================
 
 SensirionI2cScd4x scd4x;
@@ -113,15 +116,27 @@ bool kirimKeMQTT(uint16_t nilaiCo2, float nilaiSuhu, float nilaiLembap) {
     return false;
   }
 
-  char payload[160];
-  snprintf(
-    payload,
-    sizeof(payload),
-    "{\"co2_ppm\":%u,\"temperature_c\":%.1f,\"humidity_percent\":%.1f,\"source\":\"scd40\"}",
-    nilaiCo2,
-    nilaiSuhu,
-    nilaiLembap
-  );
+  char payload[256];
+  if (strlen(DEVICE_TOKEN) > 0) {
+    snprintf(
+      payload,
+      sizeof(payload),
+      "{\"co2_ppm\":%u,\"temperature_c\":%.1f,\"humidity_percent\":%.1f,\"source\":\"scd40\",\"device_token\":\"%s\"}",
+      nilaiCo2,
+      nilaiSuhu,
+      nilaiLembap,
+      DEVICE_TOKEN
+    );
+  } else {
+    snprintf(
+      payload,
+      sizeof(payload),
+      "{\"co2_ppm\":%u,\"temperature_c\":%.1f,\"humidity_percent\":%.1f,\"source\":\"scd40\"}",
+      nilaiCo2,
+      nilaiSuhu,
+      nilaiLembap
+    );
+  }
 
   bool terkirim = mqttClient.publish(MQTT_TOPIC, payload, false);
   if (terkirim) {

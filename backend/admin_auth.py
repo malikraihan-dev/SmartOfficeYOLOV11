@@ -134,7 +134,7 @@ def register_admin_auth(app, store=None):
         if len(data['username']) > 40 or len(data['password']) > 128:
             return failure('Nama pengguna atau kata sandi tidak sesuai.', 400)
         if not store.configured():
-            return failure('Akun admin belum dibuat. Jalankan python manage_admin.py pada komputer server.', 503)
+            return failure('Akun admin belum dibuat. Jalankan python backend/manage_admin.py pada komputer server.', 503)
         address = request.remote_addr or 'unknown'
         now = time.time()
         with store.connect() as db:

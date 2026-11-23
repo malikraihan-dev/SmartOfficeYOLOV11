@@ -21,7 +21,7 @@ B. MODE 2 - HYBRID: WEBCAM LOKAL + POSTGRES & MQTT VIA DOCKER (PALING DISARANKAN
    1. Jalankan hanya Postgres dan Mosquitto di Docker:
       docker compose up -d postgres mosquitto
    2. Di file backend/.env atur:
-      DATABASE_URL=postgresql://postgres:1234@127.0.0.1:5433/smartoffice
+      DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5433/smartoffice
       MQTT_ENABLED=1
       MQTT_BROKER_HOST=127.0.0.1
       MQTT_BROKER_PORT=1883
@@ -159,15 +159,15 @@ A. Atur backend/.env:
    - Jika memakai PostgreSQL bawaan Windows (port 5432):
      DATABASE_URL=postgresql://postgres:PASSWORD_POSTGRES_ANDA@127.0.0.1:5432/smartoffice
    - Jika memakai PostgreSQL Docker (Mode Hybrid, port 5433):
-     DATABASE_URL=postgresql://postgres:1234@127.0.0.1:5433/smartoffice
+     DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5433/smartoffice
 
-B. Buat database & seluruh 10 tabel otomatis lewat terminal:
+B. Buat database & seluruh 11 tabel otomatis lewat terminal:
    python backend/scripts/connect_postgres.py --create-db --init-schema --status
 
-   Pastikan output menampilkan status TERHUBUNG dan daftar 10 tabel:
+   Pastikan output menampilkan status TERHUBUNG dan daftar 11 tabel:
    sensor_readings, evaluation_samples, occupancy_samples,
    tracking_points, quality_events, audio_samples, zone_visits,
-   admins, admin_sessions, login_attempts.
+   admins, admin_sessions, login_attempts, runtime_settings.
 
 C. Cara Membuka & Melihat Tabel di DBeaver (Pengganti pgAdmin):
    1. Buka DBeaver -> klik New Database Connection -> pilih PostgreSQL.
@@ -177,7 +177,7 @@ C. Cara Membuka & Melihat Tabel di DBeaver (Pengganti pgAdmin):
                    atau 5433 (untuk Postgres Docker)
       - Database : smartoffice
       - Username : postgres
-      - Password : sesuai password PostgreSQL Anda (1234 jika Docker)
+      - Password : sesuai password PostgreSQL Anda ("postgres" jika Docker)
    3. Centang kotak "Show all databases" pada layar koneksi.
    4. Klik "Test Connection" (klik Download jika diminta unduh driver
       JDBC pertama kali), lalu klik Finish.

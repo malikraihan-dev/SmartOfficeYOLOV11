@@ -12,7 +12,7 @@ Peta struktur kode tersedia melalui [Graphify khusus proyek](docs/GRAPHIFY.md), 
 
 Rancangan sebelum implementasi: [Google SSO, pendaftaran pengguna, dan persetujuan admin](docs/AUTH_SSO_REGISTRATION.md), mencakup arsitektur, struktur modul/database, kontrak API, dan tahapan migrasi.
 
-Kebutuhan tambahan: Node.js 22.20+ dengan npm. Python tetap memakai dependensi di `requirements.txt`.
+Kebutuhan tambahan: Node.js 22.20+ dengan npm. Python memakai dependensi di `backend/requirements.txt`.
 
 Dari folder `SmartOfficeYOLOV11`, siapkan dependensi backend (`backend/`) dan frontend (`frontend/`) serta akun admin sekali:
 
@@ -42,21 +42,32 @@ Jika `DATABASE_URL` tidak diatur, backend otomatis menggunakan SQLite lokal (`ba
 
 Seluruh 4 layanan (**PostgreSQL**, **Mosquitto MQTT Broker**, **Backend Python/YOLOv11**, dan **Frontend Next.js**) dapat dijalankan sekaligus menggunakan satu perintah dari folder `SmartOfficeYOLOV11`:
 
+Salin `.env.example` di root menjadi `.env` bila ingin mengatur password admin atau variabel Docker Compose:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Lalu jalankan seluruh layanan:
+
 ```powershell
 docker compose up -d --build
 ```
 
 Saat container menyala pertama kali, `backend/scripts/docker_bootstrap.py` otomatis:
 1. Menunggu container PostgreSQL siap (`smartoffice-postgres`),
-2. Membuat seluruh 10 tabel database,
-3. Mengisi 5 baris data awal sensor (`--seed`), dan
-4. Membuat akun admin bawaan (`username`: `admin`, `password`: `smartoffice2026` — dapat diubah melalui environment variable `SMARTOFFICE_ADMIN_USER` & `SMARTOFFICE_ADMIN_PASSWORD`).
+2. Membuat seluruh 11 tabel database (termasuk `runtime_settings` dan tabel autentikasi),
+3. Mengisi data awal contoh hanya jika `SMARTOFFICE_AUTO_SEED=1` disetel di `.env` (default `0` agar data uji coba tidak masuk ke dataset SCD40 asli), dan
+4. Membuat akun admin awal jika `SMARTOFFICE_ADMIN_PASSWORD` (12–128 karakter) disetel di `.env`. Jika belum disetel, buat akun secara interaktif setelah container menyala dengan:
+   ```powershell
+   docker compose exec backend python manage_admin.py
+   ```
 
 Akses layanan Docker:
 - **Frontend Web & Login**: `http://localhost:3000/login`
 - **Backend Health JSON**: `http://localhost:5000/api/health`
 - **MQTT Broker (ESP32-S3)**: Port `1883` (topic `smartoffice/scd40/telemetry`)
-- **Database PostgreSQL (DBeaver)**: Host `localhost`, Port `5433`, Database `smartoffice`, User `postgres`, Password `1234`
+- **Database PostgreSQL (DBeaver)**: Host `127.0.0.1`, Port `5433`, Database `smartoffice`, User `postgres`, Password `postgres` (atau sesuai `POSTGRES_PASSWORD` di `.env`)
 
 ### Menjalankan Secara Lokal Tanpa Docker (2 Service Terpisah atau Gabungan)
 
@@ -75,11 +86,11 @@ Akses layanan Docker:
   npm run dev
   ```
 
-Buka **http://127.0.0.1:3000/login** dan masuk dengan akun yang dibuat. Flask berjalan di **http://127.0.0.1:5000**. Request `/api/*`, `/video_feed`, `/snapshots/*`, dan `/training_data/*` diteruskan ke Flask oleh Next.js. Sesi memakai cookie HttpOnly, bukan credential di source browser. Salin `apps/web/.env.example` menjadi `.env.local` untuk mengubah `SMARTOFFICE_API_URL`, kemudian mulai ulang Next.js.
+Buka **http://127.0.0.1:3000/login** dan masuk dengan akun yang dibuat. Flask berjalan di **http://127.0.0.1:5000**. Request `/api/*`, `/video_feed`, `/snapshots/*`, dan `/training_data/*` diteruskan ke Flask oleh Next.js. Sesi memakai cookie HttpOnly, bukan credential di source browser. Salin `frontend/.env.example` menjadi `frontend/.env.local` untuk mengubah `SMARTOFFICE_API_URL`, kemudian mulai ulang Next.js.
 
-`npm run dev` juga dapat dijalankan dari `apps/web`. Launcher menjalankan Flask dan Next.js bersama; Ctrl+C menghentikan kedua layanan beserta proses turunannya. Jika satu layanan gagal, layanan lainnya ikut dihentikan. Hentikan server lama di port 3000/5000 sebelum memakai launcher; proses lain tidak dihentikan otomatis. Dependensi tidak diinstal ulang setiap startup.
+`npm run dev` juga dapat dijalankan dari `frontend`. Launcher menjalankan Flask dan Next.js bersama; Ctrl+C menghentikan kedua layanan beserta proses turunannya. Jika satu layanan gagal, layanan lainnya ikut dihentikan. Hentikan server lama di port 3000/5000 sebelum memakai launcher; proses lain tidak dihentikan otomatis. Dependensi tidak diinstal ulang setiap startup.
 
-Python dipilih dari `SMARTOFFICE_PYTHON` bila diatur, virtual environment aktif, `.venv` proyek, lalu perintah `python`. Contoh interpreter khusus: `$env:SMARTOFFICE_PYTHON = 'C:\path\venv\Scripts\python.exe'`. Launcher selalu mengarahkan frontend ke API lokal port 5000; untuk backend eksternal atau yang sudah berjalan, gunakan frontend saja: `cd apps/web` lalu `npm run dev:web` (atau `npm run dev:web:compat` di Windows). `run_frontend.bat` tetap menjalankan frontend saja.
+Python dipilih dari `SMARTOFFICE_PYTHON` bila diatur, virtual environment aktif, `.venv` proyek, lalu perintah `python`. Contoh interpreter khusus: `$env:SMARTOFFICE_PYTHON = 'C:\path\venv\Scripts\python.exe'`. Launcher selalu mengarahkan frontend ke API lokal port 5000; untuk backend eksternal atau yang sudah berjalan, gunakan frontend saja: `cd frontend` lalu `npm run dev:web` (atau `npm run dev:web:compat` di Windows). `run_frontend.bat` tetap menjalankan frontend saja.
 
 Pratinjau UI dari backend fixture pengujian, bukan pengukuran perangkat nyata:
 
@@ -87,9 +98,9 @@ Pratinjau UI dari backend fixture pengujian, bukan pengukuran perangkat nyata:
 
 ![Monitoring desktop dengan sensor demo](docs/screenshots/monitoring-1440.png)
 
-Di Windows, launcher memakai compiler WebAssembly untuk kompatibilitas Application Control. `npm run dev:compat` memilih jalur itu secara eksplisit di platform lain. Mode produksi dari `apps/web`: `npm run build:compat` lalu `npm start` (atau `npm run build` pada mesin yang mendukung compiler native); backend produksi tetap dikelola terpisah. Override compiler ini memakai API internal Next.js dan perlu diperiksa kembali saat memperbarui Next.js; gunakan `apps/web/package-lock.json` yang disediakan.
+Di Windows, launcher memakai compiler WebAssembly untuk kompatibilitas Application Control. `npm run dev:compat` memilih jalur itu secara eksplisit di platform lain. Mode produksi dari `frontend`: `npm run build:compat` lalu `npm start` (atau `npm run build` pada mesin yang mendukung compiler native); backend produksi tetap dikelola terpisah. Override compiler ini memakai API internal Next.js dan perlu diperiksa kembali saat memperbarui Next.js; gunakan `frontend/package-lock.json` yang disediakan.
 
-Ketika Flask mati, halaman login menjelaskan kegagalan koneksi; sesi harus diverifikasi sebelum dashboard dapat dibuka. Pada sesi aktif, polling menampilkan error jika endpoint data gagal. Buka hanya satu halaman kamera aktif pada instalasi lokal; generator kamera Flask masih mengikuti koneksi MJPEG dan belum dipisah menjadi satu worker bersama. Rincian pengujian dan konfigurasi proxy produksi ada di [apps/web/README.md](apps/web/README.md).
+Ketika Flask mati, halaman login menjelaskan kegagalan koneksi; sesi harus diverifikasi sebelum dashboard dapat dibuka. Pada sesi aktif, polling menampilkan error jika endpoint data gagal. Kamera dan inference dijalankan satu worker bersama per proses backend; beberapa halaman MJPEG membaca frame terbaru yang sama. Jalankan satu proses backend untuk satu kamera fisik. Pengaturan deteksi, zona, dan ambang audio disimpan di tabel `runtime_settings` sehingga tetap bertahan setelah server dimulai ulang. Rincian pengujian dan konfigurasi proxy produksi ada di [frontend/README.md](frontend/README.md).
 
 ## Fitur
 
@@ -101,7 +112,7 @@ Ketika Flask mati, halaman login menjelaskan kegagalan koneksi; sesi harus diver
 - Pemantauan tingkat audio melalui mikrofon (opsional).
 - Data CO₂, suhu, dan kelembapan; mode demo digunakan sebelum data SCD40 diterima.
 - Ulasan sampel deteksi/audio dan ekspor data untuk analisis atau pelatihan di Google Colab.
-- Penyimpanan riwayat menggunakan SQLite.
+- Penyimpanan riwayat menggunakan PostgreSQL atau fallback SQLite lokal.
 
 ## Kebutuhan
 
@@ -125,55 +136,64 @@ Alternatif melalui PowerShell:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install -r requirements.txt
-python app.py
+pip install -r backend/requirements.txt
+python backend/app.py
 ```
 
-Kamera harus dapat diakses oleh komputer yang menjalankan Flask. Tutup aplikasi lain yang sedang memakai kamera jika kamera tidak terdeteksi. Model bawaan adalah `yolo11n.pt`; model hasil training `best_smartoffice.pt` dapat dipilih dengan variabel lingkungan `SMARTOFFICE_MODEL` sebelum menjalankan aplikasi.
+Kamera harus dapat diakses oleh komputer yang menjalankan Flask. Tutup aplikasi lain yang sedang memakai kamera jika kamera tidak terdeteksi. Model bawaan adalah `yolo11n.pt`; model hasil training `best_smartoffice.pt` dapat dipilih dengan variabel lingkungan `SMARTOFFICE_MODEL` sebelum menjalankan aplikasi. Sumber kamera khusus (index atau URL RTSP/HTTP) dapat diatur lewat `SMARTOFFICE_CAMERA_SOURCE`.
 
 ## Menghubungkan ESP32 + SCD40 (opsional)
 
-1. Pastikan ESP32, komputer server, dan Wi-Fi berada pada jaringan yang sama.
-2. Buka `SCD40_ESP32.ino` di Arduino IDE. Pasang library **Sensirion I2C SCD4x** melalui Library Manager.
+1. Pastikan ESP32, komputer server (Mosquitto MQTT Broker), dan Wi-Fi berada pada jaringan yang sama.
+2. Buka `SCD40_ESP32.ino` di Arduino IDE. Pasang library **Sensirion I2C SCD4x**, **U8g2**, dan **PubSubClient** melalui Library Manager.
 3. Isi `WIFI_SSID` dan `WIFI_PASSWORD`.
-4. Ganti alamat IP pada `API_URL` dengan IP komputer yang menjalankan Flask, misalnya `http://192.168.1.10:5000/api/scd40`. Jangan gunakan `127.0.0.1` pada ESP32 karena alamat itu menunjuk ke ESP32 sendiri.
+4. Ganti `MQTT_BROKER` dengan IPv4 komputer yang menjalankan Mosquitto (port `1883`, topic `smartoffice/scd40/telemetry`). Jangan gunakan `127.0.0.1` pada ESP32 karena alamat itu menunjuk ke ESP32 sendiri. Endpoint HTTP `POST /api/scd40` juga tetap tersedia bila ingin mengirim via HTTP.
 5. Unggah program ke ESP32. Saat data diterima, status sensor di dashboard berubah dari mode demo ke data SCD40.
 
 ## Struktur utama
 
 ```text
 SmartOfficeYOLOV11/
+├── docker-compose.yml             # Orkestrasi PostgreSQL, Mosquitto, Backend, Frontend
+├── .env.example                   # Template environment untuk Docker Compose
 ├── backend/                       # Service Backend Python (Flask :5000)
 │   ├── app.py                     # Server Flask, deteksi YOLO, API
+│   ├── camera_worker.py           # Worker kamera/inference bersama lintas-klien
 │   ├── database.py                # Adapter database PostgreSQL & SQLite
+│   ├── mqtt_listener.py           # Subscriber MQTT untuk telemetri SCD40
+│   ├── settings_store.py          # Penyimpanan persisten pengaturan deteksi & audio
 │   ├── admin_auth.py              # Akun, sesi dan perlindungan API
 │   ├── manage_admin.py            # Pembuatan/reset akun admin
 │   ├── sensor_dataset.py          # Dataset & ekspor sensor SCD40
-│   ├── requirements.txt           # Dependensi Python (+ psycopg2-binary)
-│   ├── .env.example               # Template DATABASE_URL PostgreSQL
+│   ├── requirements.txt           # Dependensi Python (+ psycopg2-binary, paho-mqtt)
+│   ├── .env.example               # Template DATABASE_URL PostgreSQL & MQTT
 │   ├── run_backend.bat            # Menjalankan service backend mandiri
 │   ├── scripts/
-│   │   └── connect_postgres.py    # Script CLI koneksi & init skema PostgreSQL
-│   └── tests/                     # Unit test backend & PostgreSQL adapter
+│   │   ├── connect_postgres.py    # Script CLI koneksi & init skema PostgreSQL
+│   │   ├── docker_bootstrap.py    # Bootstrap DB & admin untuk container backend
+│   │   └── publish_mqtt_test.py   # Simulasi publish data SCD40 ke broker MQTT
+│   └── tests/                     # Unit test backend, runtime & PostgreSQL adapter
 ├── frontend/                      # Service Frontend Next.js (:3000)
 │   ├── src/                       # Halaman & komponen React/TypeScript
 │   ├── scripts/                   # Script launcher & kompatibilitas WASM
 │   ├── run_frontend.bat           # Menjalankan service frontend mandiri
 │   └── tests/                     # Tes E2E Playwright & mock API
-├── SCD40_ESP32.ino                # Contoh firmware ESP32 + sensor SCD40
+├── docker/mosquitto/              # Konfigurasi Mosquitto MQTT untuk Docker
+├── docs/                          # Dokumentasi arsitektur, audit & panduan lokal
+├── SCD40_ESP32.ino                # Firmware ESP32-S3 + sensor SCD40 (MQTT)
 └── sensor_training/               # Dataset dummy & artefak training SCD40
 ```
 
-Folder `snapshots/`, `training_data/`, dan `dataset_images/` dibuat otomatis bila belum tersedia. Database `smartoffice.db` juga diinisialisasi saat aplikasi berjalan.
+Folder `backend/snapshots/`, `backend/training_data/`, dan `backend/dataset_images/` dibuat otomatis bila belum tersedia. Database `backend/smartoffice.db` juga diinisialisasi saat aplikasi berjalan tanpa `DATABASE_URL`.
 
 ## Data dan privasi
 
-Aplikasi menyimpan sampel evaluasi, titik pelacakan, peristiwa kualitas frame, sampel audio, kunjungan zona, dan pembacaan SCD40 ke SQLite serta menyimpan gambar pada folder proyek. Tombol penghapusan lama mencakup data kamera/audio; riwayat sensor di `sensor_readings` tidak ikut dihapus. Ekspor dan cadangkan data sensor sebelum melakukan pengelolaan database. Pastikan kamera, mikrofon, dan data ruang kerja digunakan sesuai kebijakan privasi organisasi.
+Aplikasi menyimpan sampel evaluasi, titik pelacakan, peristiwa kualitas frame, sampel audio, kunjungan zona, dan pembacaan SCD40 ke PostgreSQL/SQLite serta menyimpan gambar pada folder `backend/`. Tombol penghapusan lama mencakup data kamera/audio; riwayat sensor di `sensor_readings` tidak ikut dihapus. Ekspor dan cadangkan data sensor sebelum melakukan pengelolaan database. Pastikan kamera, mikrofon, dan data ruang kerja digunakan sesuai kebijakan privasi organisasi.
 
 ## Dataset sensor dan training Colab
 
-1. Jalankan ulang `python app.py` setelah pembaruan ini. Tabel `sensor_readings` dibuat otomatis tanpa menghapus tabel lama.
-2. Setelah login, buka [Dataset sensor](http://127.0.0.1:3000/datasets/sensors). Setiap pembacaan valid baru dari `/api/scd40` dicatat otomatis. Riwayat sebelum pembaruan tidak dapat dipulihkan dari nilai terakhir.
+1. Jalankan ulang `python backend/app.py` setelah pembaruan ini. Tabel `sensor_readings` dibuat otomatis tanpa menghapus tabel lama.
+2. Setelah login, buka [Dataset sensor](http://127.0.0.1:3000/datasets/sensors). Setiap pembacaan valid baru dari `/api/scd40` atau MQTT dicatat otomatis. Riwayat sebelum pembaruan tidak dapat dipulihkan dari nilai terakhir.
 3. Pilih **Unduh CSV asli** untuk data yang terkumpul. Data demo dashboard tidak disimpan sebagai data asli. Instalasi saat ini ditujukan untuk satu sensor di satu ruangan.
 4. Untuk latihan tanpa alat, gunakan [CSV dummy](sensor_training/scd40_dummy.csv): 30 hari, interval satu menit, 43.200 baris dengan `source=synthetic`.
 5. Unggah [notebook SCD40](SmartOffice_Colab_Training_SCD40.ipynb) ke Google Colab. Runtime CPU cukup. Default `DATA_MODE='dummy'` membuat data simulasi sendiri. Pilih `DATA_MODE='upload'` untuk CSV asli atau CSV dummy yang diunduh.
@@ -181,11 +201,12 @@ Aplikasi menyimpan sampel evaluasi, titik pelacakan, peristiwa kualitas frame, s
 
 Hasil dummy hanya latihan alur, bukan akurasi fisik SCD40 atau validasi ruangan nyata. MAE suhu memakai °C dan MAE CO₂ memakai ppm. Model hasil notebook **belum dihubungkan** ke dashboard dan tidak menggantikan bobot YOLO. Contoh hasil simulasi lokal tersedia di `sensor_training/hasil_training_scd40.zip`.
 
-File fitur sensor: `sensor_dataset.py`, `apps/web/src/features/sensors/sensor-dataset.tsx`, dan `tests/test_sensor_dataset.py`. Kontrak data dijelaskan di [SENSOR_API.md](docs/SENSOR_API.md).
+File fitur sensor: `backend/sensor_dataset.py`, `frontend/src/features/sensors/sensor-dataset.tsx`, dan `backend/tests/test_sensor_dataset.py`. Kontrak data dijelaskan di [SENSOR_API.md](docs/SENSOR_API.md).
 
-## Pengujian fitur sensor
+## Pengujian fitur sensor dan backend
 
 ```powershell
+cd backend
 python -m unittest discover -s tests -v
 ```
 
@@ -193,7 +214,7 @@ Tes memakai SQLite sementara dan tidak membuka kamera, memuat YOLO, atau menguba
 
 ## Rancangan migrasi web
 
-Tahap frontend **Next.js (React + TypeScript)** sudah diimplementasikan di `apps/web` dengan backend Flask. Backend belum dipindahkan ke FastAPI, database/perangkat tetap pada Python, dan model prediksi sensor belum dihubungkan. Dashboard Flask lama telah dihapus.
+Tahap frontend **Next.js (React + TypeScript)** sudah diimplementasikan di `frontend` dengan backend Flask di `backend/`. Backend belum dipindahkan ke FastAPI, database/perangkat tetap pada Python, dan model prediksi sensor belum dihubungkan. Dashboard Flask lama telah dihapus.
 
 - [Arsitektur dan struktur folder](docs/ARCHITECTURE.md): tahapan migrasi dan struktur README yang disarankan.
 - [Aturan pengembangan](docs/RULES.md): data, model, kode, dan pengujian.

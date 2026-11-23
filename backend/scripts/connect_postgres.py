@@ -35,6 +35,7 @@ APP_TABLES = (
     "admins",
     "admin_sessions",
     "login_attempts",
+    "runtime_settings",
 )
 
 POSTGRES_SCHEMA_SQL = """
@@ -133,6 +134,11 @@ CREATE TABLE IF NOT EXISTS login_attempts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_login_attempts ON login_attempts(address, attempted_at);
+
+CREATE TABLE IF NOT EXISTS runtime_settings (
+    name TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 """
 
 

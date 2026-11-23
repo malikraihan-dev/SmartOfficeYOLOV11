@@ -1,9 +1,9 @@
 """Bootstrap script executed on Backend container startup.
 
 1. Waits for PostgreSQL to accept connections.
-2. Initializes all 10 Smart Office & Admin Auth tables.
-3. Seeds minimal initial telemetry if sensor_readings is empty (andSMARTOFFICE_AUTO_SEED=1).
-4. Creates default admin account if admins table is empty and SMARTOFFICE_ADMIN_PASSWORD is set.
+2. Initializes all 11 Smart Office, Settings & Admin Auth tables.
+3. Optionally seeds minimal sample telemetry if sensor_readings is empty and SMARTOFFICE_AUTO_SEED=1.
+4. Creates initial admin account if admins table is empty and SMARTOFFICE_ADMIN_PASSWORD is set.
 """
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ def main() -> int:
     if is_postgres_target(target):
         init_postgres_schema(target)
         print("[Bootstrap] Skema tabel PostgreSQL siap.")
-        auto_seed = os.environ.get("SMARTOFFICE_AUTO_SEED", "1").strip().lower() not in ("0", "false", "no")
+        auto_seed = os.environ.get("SMARTOFFICE_AUTO_SEED", "0").strip().lower() in ("1", "true", "yes")
         if auto_seed:
             db = connect_database(target)
             try:
@@ -57,13 +57,18 @@ def main() -> int:
 
     admin_user = os.environ.get("SMARTOFFICE_ADMIN_USER", "admin").strip() or "admin"
     admin_pass = os.environ.get("SMARTOFFICE_ADMIN_PASSWORD", "").strip()
-    if admin_pass:
-        store = AdminStore(target)
-        if not store.configured():
-            store.set_admin(admin_user, admin_pass)
-            print(f"[Bootstrap] Akun admin awal '{admin_user}' berhasil dibuat.")
-        else:
-            print("[Bootstrap] Akun admin sudah tersedia di database.")
+    store = AdminStore(target)
+    if store.configured():
+        print("[Bootstrap] Akun admin sudah tersedia di database.")
+    elif admin_pass:
+        store.set_admin(admin_user, admin_pass)
+        print(f"[Bootstrap] Akun admin awal '{admin_user}' berhasil dibuat.")
+    else:
+        print(
+            "[Bootstrap] Akun admin belum dibuat. Jalankan "
+            "`docker compose exec backend python manage_admin.py` "
+            "atau atur SMARTOFFICE_ADMIN_PASSWORD (12-128 karakter) di .env."
+        )
 
     return 0
 
